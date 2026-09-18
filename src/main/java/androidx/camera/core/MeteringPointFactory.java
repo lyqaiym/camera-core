@@ -19,10 +19,9 @@ package androidx.camera.core;
 import android.graphics.PointF;
 import android.util.Rational;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 /**
  * A factory to create a {@link MeteringPoint}.
@@ -43,7 +42,8 @@ public abstract class MeteringPointFactory {
      *
      * @see MeteringPoint#getSurfaceAspectRatio()
      */
-    private @Nullable Rational mSurfaceAspectRatio;
+    @Nullable
+    private Rational mSurfaceAspectRatio;
 
     /**
      * Constructor that use Preview aspect ratio for {@link MeteringPoint}.
@@ -92,7 +92,8 @@ public abstract class MeteringPointFactory {
      * @return a {@link PointF} consisting of converted normalized surface coordinates.
      */
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
-    protected abstract @NonNull PointF convertPoint(float x, float y);
+    @NonNull
+    protected abstract PointF convertPoint(float x, float y);
 
     /**
      * Sets the surface aspect ratio used to created {@link MeteringPoint}s.
@@ -115,7 +116,8 @@ public abstract class MeteringPointFactory {
      * @see DisplayOrientedMeteringPointFactory
      * @see SurfaceOrientedMeteringPointFactory
      */
-    public final @NonNull MeteringPoint createPoint(float x, float y) {
+    @NonNull
+    public final MeteringPoint createPoint(float x, float y) {
         return createPoint(x, y, getDefaultPointSize());
     }
 
@@ -135,7 +137,8 @@ public abstract class MeteringPointFactory {
      * @see DisplayOrientedMeteringPointFactory
      * @see SurfaceOrientedMeteringPointFactory
      */
-    public final @NonNull MeteringPoint createPoint(float x, float y, float size) {
+    @NonNull
+    public final MeteringPoint createPoint(float x, float y, float size) {
         PointF convertedPoint = convertPoint(x, y);
         return new MeteringPoint(convertedPoint.x, convertedPoint.y, size, mSurfaceAspectRatio);
     }

@@ -22,13 +22,12 @@ import android.view.SurfaceView;
 import android.view.View;
 
 import androidx.annotation.IntDef;
+import androidx.annotation.NonNull;
 import androidx.annotation.RestrictTo;
 import androidx.camera.core.impl.ImageOutputConfig;
 import androidx.camera.core.resolutionselector.AspectRatioStrategy;
 import androidx.camera.core.resolutionselector.ResolutionSelector;
 import androidx.core.util.Preconditions;
-
-import org.jspecify.annotations.NonNull;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -148,7 +147,8 @@ public final class ViewPort {
     @ScaleType
     private int mScaleType;
 
-    private @NonNull Rational mAspectRatio;
+    @NonNull
+    private Rational mAspectRatio;
 
     @ImageOutputConfig.RotationValue
     private int mRotation;
@@ -167,7 +167,8 @@ public final class ViewPort {
     /**
      * Gets the aspect ratio of the {@link ViewPort}.
      */
-    public @NonNull Rational getAspectRatio() {
+    @NonNull
+    public Rational getAspectRatio() {
         return mAspectRatio;
     }
 
@@ -277,7 +278,8 @@ public final class ViewPort {
          *
          * <p> The default value is {@link #FILL_CENTER} if not set.
          */
-        public @NonNull Builder setScaleType(@ScaleType int scaleType) {
+        @NonNull
+        public Builder setScaleType(@ScaleType int scaleType) {
             mScaleType = scaleType;
             return this;
         }
@@ -290,7 +292,8 @@ public final class ViewPort {
          *
          * <p> The default value is {@link android.util.LayoutDirection#LTR} if not set.
          */
-        public @NonNull Builder setLayoutDirection(@LayoutDirection int layoutDirection) {
+        @NonNull
+        public Builder setLayoutDirection(@LayoutDirection int layoutDirection) {
             mLayoutDirection = layoutDirection;
             return this;
         }
@@ -298,7 +301,8 @@ public final class ViewPort {
         /**
          * Builds the {@link ViewPort}.
          */
-        public @NonNull ViewPort build() {
+        @NonNull
+        public ViewPort build() {
             Preconditions.checkNotNull(mAspectRatio, "The crop aspect ratio must be set.");
             return new ViewPort(mScaleType, mAspectRatio, mRotation, mLayoutDirection);
         }

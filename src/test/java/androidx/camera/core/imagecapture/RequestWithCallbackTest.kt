@@ -16,7 +16,6 @@
 
 package androidx.camera.core.imagecapture
 
-import android.graphics.ImageFormat
 import android.os.Build
 import android.os.Looper.getMainLooper
 import androidx.camera.core.ImageCapture
@@ -58,7 +57,7 @@ class RequestWithCallbackTest {
         abortError = ImageCaptureException(ERROR_CAMERA_CLOSED, "", null)
         otherError = ImageCaptureException(ERROR_CAPTURE_FAILED, "", null)
         imageResult = FakeImageProxy(FakeImageInfo())
-        fileResult = ImageCapture.OutputFileResults(null, ImageFormat.JPEG)
+        fileResult = ImageCapture.OutputFileResults(null)
         retryControl = FakeRetryControl()
         captureRequestFuture = CallbackToFutureAdapter.getFuture { "captureRequestFuture" }
     }

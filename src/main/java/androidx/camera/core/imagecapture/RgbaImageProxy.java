@@ -30,6 +30,8 @@ import android.graphics.Rect;
 import android.media.Image;
 
 import androidx.annotation.GuardedBy;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 import androidx.camera.core.ExperimentalGetImage;
 import androidx.camera.core.ImageInfo;
@@ -37,9 +39,6 @@ import androidx.camera.core.ImageProxy;
 import androidx.camera.core.impl.TagBundle;
 import androidx.camera.core.impl.utils.ExifData;
 import androidx.camera.core.processing.Packet;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.nio.ByteBuffer;
 
@@ -59,13 +58,16 @@ public final class RgbaImageProxy implements ImageProxy {
 
     private final int mHeight;
 
-    private final @NonNull Rect mCropRect;
+    @NonNull
+    private final Rect mCropRect;
 
     // Null if the ImageProxy is closed. Otherwise non-null.
     @GuardedBy("mLock")
-    PlaneProxy @Nullable [] mPlaneProxy;
+    @Nullable
+    PlaneProxy[] mPlaneProxy;
 
-    private final @NonNull ImageInfo mImageInfo;
+    @NonNull
+    private final ImageInfo mImageInfo;
 
     /**
      * Constructs the object from a {@link Packet}.
@@ -125,8 +127,9 @@ public final class RgbaImageProxy implements ImageProxy {
         }
     }
 
+    @NonNull
     @Override
-    public @NonNull Rect getCropRect() {
+    public Rect getCropRect() {
         synchronized (mLock) {
             checkNotClosed();
             return mCropRect;
@@ -167,25 +170,28 @@ public final class RgbaImageProxy implements ImageProxy {
         }
     }
 
+    @NonNull
     @Override
-    public PlaneProxy @NonNull [] getPlanes() {
+    public PlaneProxy[] getPlanes() {
         synchronized (mLock) {
             checkNotClosed();
             return requireNonNull(mPlaneProxy);
         }
     }
 
+    @NonNull
     @Override
-    public @NonNull ImageInfo getImageInfo() {
+    public ImageInfo getImageInfo() {
         synchronized (mLock) {
             checkNotClosed();
             return mImageInfo;
         }
     }
 
+    @Nullable
     @ExperimentalGetImage
     @Override
-    public @Nullable Image getImage() {
+    public Image getImage() {
         synchronized (mLock) {
             checkNotClosed();
             return null;
@@ -195,7 +201,8 @@ public final class RgbaImageProxy implements ImageProxy {
     /**
      * Creates a {@link Bitmap} form the value of the underlying {@link ByteBuffer}.
      */
-    public @NonNull Bitmap createBitmap() {
+    @NonNull
+    public Bitmap createBitmap() {
         synchronized (mLock) {
             checkNotClosed();
             return createBitmapFromPlane(getPlanes(), getWidth(), getHeight());
@@ -221,8 +228,9 @@ public final class RgbaImageProxy implements ImageProxy {
                 return pixelStride;
             }
 
+            @NonNull
             @Override
-            public @NonNull ByteBuffer getBuffer() {
+            public ByteBuffer getBuffer() {
                 return byteBuffer;
             }
         };
@@ -231,8 +239,9 @@ public final class RgbaImageProxy implements ImageProxy {
     private static ImageInfo createImageInfo(
             long timestamp, int rotationDegrees, @NonNull Matrix sensorToBuffer) {
         return new ImageInfo() {
+            @NonNull
             @Override
-            public @NonNull TagBundle getTagBundle() {
+            public TagBundle getTagBundle() {
                 throw new UnsupportedOperationException(
                         "Custom ImageProxy does not contain TagBundle");
             }
@@ -248,12 +257,13 @@ public final class RgbaImageProxy implements ImageProxy {
             }
 
             @Override
-            public @NonNull Matrix getSensorToBufferTransformMatrix() {
+            @NonNull
+            public Matrix getSensorToBufferTransformMatrix() {
                 return new Matrix(sensorToBuffer);
             }
 
             @Override
-            public void populateExifData(ExifData.@NonNull Builder exifBuilder) {
+            public void populateExifData(@NonNull ExifData.Builder exifBuilder) {
                 throw new UnsupportedOperationException(
                         "Custom ImageProxy does not contain Exif data.");
             }

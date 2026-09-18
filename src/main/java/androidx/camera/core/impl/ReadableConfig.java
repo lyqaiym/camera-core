@@ -16,8 +16,8 @@
 
 package androidx.camera.core.impl;
 
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.util.Set;
 
@@ -34,7 +34,8 @@ public interface ReadableConfig extends Config {
      *
      * @return The underlying {@link Config} object.
      */
-    @NonNull Config getConfig();
+    @NonNull
+    Config getConfig();
 
     @Override
     default boolean containsOption(@NonNull Option<?> id) {
@@ -42,12 +43,14 @@ public interface ReadableConfig extends Config {
     }
 
     @Override
-    default <ValueT> @Nullable ValueT retrieveOption(@NonNull Option<ValueT> id) {
+    @Nullable
+    default <ValueT> ValueT retrieveOption(@NonNull Option<ValueT> id) {
         return getConfig().retrieveOption(id);
     }
 
     @Override
-    default <ValueT> @Nullable ValueT retrieveOption(@NonNull Option<ValueT> id,
+    @Nullable
+    default <ValueT> ValueT retrieveOption(@NonNull Option<ValueT> id,
             @Nullable ValueT valueIfMissing) {
         return getConfig().retrieveOption(id, valueIfMissing);
     }
@@ -58,23 +61,27 @@ public interface ReadableConfig extends Config {
     }
 
     @Override
-    default @NonNull Set<Option<?>> listOptions() {
+    @NonNull
+    default Set<Option<?>> listOptions() {
         return getConfig().listOptions();
     }
 
     @Override
-    default <ValueT> @Nullable ValueT retrieveOptionWithPriority(@NonNull Option<ValueT> id,
+    @Nullable
+    default <ValueT> ValueT retrieveOptionWithPriority(@NonNull Option<ValueT> id,
             @NonNull OptionPriority priority) {
         return getConfig().retrieveOptionWithPriority(id, priority);
     }
 
     @Override
-    default @NonNull OptionPriority getOptionPriority(@NonNull Option<?> opt) {
+    @NonNull
+    default OptionPriority getOptionPriority(@NonNull Option<?> opt) {
         return getConfig().getOptionPriority(opt);
     }
 
+    @NonNull
     @Override
-    default @NonNull Set<OptionPriority> getPriorities(@NonNull Option<?> option) {
+    default Set<OptionPriority> getPriorities(@NonNull Option<?> option) {
         return getConfig().getPriorities(option);
     }
 }

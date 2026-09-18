@@ -19,10 +19,9 @@ package androidx.camera.core.processing;
 import android.view.Surface;
 
 import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
 import androidx.camera.core.UseCase;
 import androidx.camera.core.impl.CameraCaptureResult;
-
-import org.jspecify.annotations.NonNull;
 
 /**
  * A pub/sub based unit for CameraX post-processing.
@@ -64,8 +63,9 @@ public interface Node<I, O> {
      * <p>This method will be invoked in {@code UseCase#createPipeline}. For now, {@code
      * #createPipeline}s are called on the main thread.
      */
+    @NonNull
     @MainThread
-    @NonNull O transform(@NonNull I i);
+    O transform(@NonNull I i);
 
     /**
      * Releases the node.

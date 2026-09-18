@@ -16,7 +16,7 @@
 
 package androidx.camera.core.impl.utils;
 
-import org.jspecify.annotations.NonNull;
+import androidx.annotation.NonNull;
 
 /**
  * The rational data type of EXIF tag. Contains a pair of longs representing the
@@ -64,8 +64,9 @@ final class LongRational {
         return mNumerator / (double) mDenominator;
     }
 
+    @NonNull
     @Override
-    public @NonNull String toString() {
+    public String toString() {
         return mNumerator + "/" + mDenominator;
     }
 }

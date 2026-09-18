@@ -19,13 +19,12 @@ package androidx.camera.core.resolutionselector;
 import android.util.Size;
 
 import androidx.annotation.IntDef;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.UseCase;
 import androidx.lifecycle.LifecycleOwner;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -43,8 +42,8 @@ public final class ResolutionStrategy {
      * available resolutions to use in descending order, starting with the highest quality
      * resolution available.
      */
-    public static final @NonNull ResolutionStrategy HIGHEST_AVAILABLE_STRATEGY =
-            new ResolutionStrategy();
+    @NonNull
+    public static final ResolutionStrategy HIGHEST_AVAILABLE_STRATEGY = new ResolutionStrategy();
 
     /**
      * CameraX doesn't select an alternate size when the specified bound size is unavailable.
@@ -91,7 +90,8 @@ public final class ResolutionStrategy {
     public @interface ResolutionFallbackRule {
     }
 
-    private @Nullable Size mBoundSize = null;
+    @Nullable
+    private Size mBoundSize = null;
     private int mFallbackRule = ResolutionStrategy.FALLBACK_RULE_NONE;
 
     /**
@@ -121,10 +121,7 @@ public final class ResolutionStrategy {
      * </ul>
      *
      * @param boundSize the bound size to select the best resolution with the fallback rule.
-     * @param fallbackRule the rule to apply when the specified bound size is unavailable. This
-     *                     can be
-     *                     {@link ResolutionStrategy#FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER} or
-     *                     another strategy appropriate for the application.
+     * @param fallbackRule the rule to follow when the specified bound size is not available.
      */
     public ResolutionStrategy(@NonNull Size boundSize, @ResolutionFallbackRule int fallbackRule) {
         mBoundSize = boundSize;
@@ -137,7 +134,8 @@ public final class ResolutionStrategy {
      * @return the specified bound size or {@code null} if this is instance of
      * {@link #HIGHEST_AVAILABLE_STRATEGY}.
      */
-    public @Nullable Size getBoundSize() {
+    @Nullable
+    public Size getBoundSize() {
         return mBoundSize;
     }
 

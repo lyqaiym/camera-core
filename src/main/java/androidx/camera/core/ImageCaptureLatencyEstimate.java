@@ -16,7 +16,7 @@
 
 package androidx.camera.core;
 
-import org.jspecify.annotations.NonNull;
+import androidx.annotation.NonNull;
 
 import java.util.Objects;
 
@@ -38,7 +38,8 @@ public class ImageCaptureLatencyEstimate {
     public static final long UNDEFINED_PROCESSING_LATENCY = -1;
 
     /** The image capture latency estimate is unsupported or undefined */
-    public static final @NonNull ImageCaptureLatencyEstimate UNDEFINED_IMAGE_CAPTURE_LATENCY =
+    @NonNull
+    public static final ImageCaptureLatencyEstimate UNDEFINED_IMAGE_CAPTURE_LATENCY =
             new ImageCaptureLatencyEstimate(UNDEFINED_CAPTURE_LATENCY,
                     UNDEFINED_PROCESSING_LATENCY);
 
@@ -110,8 +111,9 @@ public class ImageCaptureLatencyEstimate {
                 mTotalCaptureLatencyMillis);
     }
 
+    @NonNull
     @Override
-    public @NonNull String toString() {
+    public String toString() {
         return "captureLatencyMillis=" + mCaptureLatencyMillis
                 + ", processingLatencyMillis=" + mProcessingLatencyMillis
                 + ", totalCaptureLatencyMillis=" + mTotalCaptureLatencyMillis;

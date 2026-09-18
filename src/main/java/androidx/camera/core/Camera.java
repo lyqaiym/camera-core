@@ -16,12 +16,11 @@
 
 package androidx.camera.core;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RestrictTo;
 import androidx.camera.core.impl.CameraConfig;
 
 import com.google.common.util.concurrent.ListenableFuture;
-
-import org.jspecify.annotations.NonNull;
 
 /**
  * The camera interface is used to control the flow of data to use cases, control the
@@ -47,7 +46,8 @@ public interface Camera {
      * the returned {@link ListenableFuture} will fail immediately with
      * {@link CameraControl.OperationCanceledException}.
      */
-    @NonNull CameraControl getCameraControl();
+    @NonNull
+    CameraControl getCameraControl();
 
     /**
      * Returns information about this camera.
@@ -57,13 +57,15 @@ public interface Camera {
      *
      * @return the {@link CameraInfo}.
      */
-    @NonNull CameraInfo getCameraInfo();
+    @NonNull
+    CameraInfo getCameraInfo();
 
     /**
      * Get the currently set extended config of the Camera.
      */
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
-    @NonNull CameraConfig getExtendedConfig();
+    @NonNull
+    CameraConfig getExtendedConfig();
 
     /**
      * Checks whether the use cases combination is supported.
@@ -72,7 +74,7 @@ public interface Camera {
      * @return whether the use cases combination is supported by the camera.
      */
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
-    default boolean isUseCasesCombinationSupported(UseCase @NonNull ... useCases) {
+    default boolean isUseCasesCombinationSupported(@NonNull UseCase... useCases) {
         return isUseCasesCombinationSupported(true, useCases);
     }
 
@@ -87,7 +89,7 @@ public interface Camera {
      * @return whether the use cases combination is supported by the camera.
      */
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
-    default boolean isUseCasesCombinationSupportedByFramework(UseCase @NonNull ... useCases) {
+    default boolean isUseCasesCombinationSupportedByFramework(@NonNull UseCase... useCases) {
         return isUseCasesCombinationSupported(false, useCases);
     }
 
@@ -102,7 +104,7 @@ public interface Camera {
      */
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
     default boolean isUseCasesCombinationSupported(boolean withStreamSharing,
-            UseCase @NonNull ... useCases) {
+            @NonNull UseCase... useCases) {
         return true;
     }
 }

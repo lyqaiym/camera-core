@@ -17,8 +17,7 @@
 package androidx.camera.core.impl;
 
 import androidx.annotation.GuardedBy;
-
-import org.jspecify.annotations.NonNull;
+import androidx.annotation.NonNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -53,7 +52,8 @@ public final class ExtendedCameraConfigProviderStore {
      * <p>A default {@link CameraConfigProvider#EMPTY} will be returned if there isn't a
      * {@link CameraConfigProvider} associated with the key.
      */
-    public static @NonNull CameraConfigProvider getConfigProvider(@NonNull Object key) {
+    @NonNull
+    public static CameraConfigProvider getConfigProvider(@NonNull Object key) {
         final CameraConfigProvider provider;
         synchronized (LOCK) {
             provider = CAMERA_CONFIG_PROVIDERS.get(key);

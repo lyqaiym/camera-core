@@ -18,9 +18,8 @@ package androidx.camera.core;
 
 import android.util.Rational;
 
+import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
-
-import org.jspecify.annotations.Nullable;
 
 /**
  * A {@link MeteringPoint} is used to specify a region which can then be converted to sensor
@@ -54,7 +53,8 @@ public class MeteringPoint {
     private float mNormalizedX;
     private float mNormalizedY;
     private float mSize;
-    private @Nullable Rational mSurfaceAspectRatio; // null for preview aspect ratio.
+    @Nullable
+    private Rational mSurfaceAspectRatio; // null for preview aspect ratio.
 
     /**
      * Constructor is restricted for use within library.
@@ -131,8 +131,9 @@ public class MeteringPoint {
      * used. Otherwise, use the specified surfaceAspectRatio.
      *
      */
+    @Nullable
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
-    public @Nullable Rational getSurfaceAspectRatio() {
+    public Rational getSurfaceAspectRatio() {
         return mSurfaceAspectRatio;
     }
 }

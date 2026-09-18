@@ -20,11 +20,10 @@ import static androidx.camera.core.impl.utils.TransformUtils.within360;
 
 import android.view.Surface;
 
+import androidx.annotation.NonNull;
 import androidx.camera.core.impl.CameraInfoInternal;
 import androidx.camera.core.impl.ForwardingCameraInfo;
 import androidx.camera.core.impl.ImageOutputConfig;
-
-import org.jspecify.annotations.NonNull;
 
 import java.util.UUID;
 
@@ -46,8 +45,9 @@ public class VirtualCameraInfo extends ForwardingCameraInfo {
     /**
      * Override the parent camera ID.
      */
+    @NonNull
     @Override
-    public @NonNull String getCameraId() {
+    public String getCameraId() {
         return mVirtualCameraId;
     }
 

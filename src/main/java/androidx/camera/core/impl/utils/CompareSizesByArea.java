@@ -18,7 +18,7 @@ package androidx.camera.core.impl.utils;
 
 import android.util.Size;
 
-import org.jspecify.annotations.NonNull;
+import androidx.annotation.NonNull;
 
 import java.util.Comparator;
 

@@ -32,7 +32,8 @@ public class TorchState {
     private TorchState() {
     }
 
-    /** The camera flash torch state. */
+    /**
+     */
     @IntDef({OFF, ON})
     @Retention(RetentionPolicy.SOURCE)
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)

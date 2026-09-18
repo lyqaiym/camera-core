@@ -20,14 +20,13 @@ import static androidx.camera.core.impl.utils.futures.Futures.getUninterruptibly
 import static androidx.core.util.Preconditions.checkNotNull;
 import static androidx.core.util.Preconditions.checkState;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.camera.core.impl.utils.executor.CameraXExecutors;
 import androidx.concurrent.futures.CallbackToFutureAdapter;
 import androidx.core.util.Preconditions;
 
 import com.google.common.util.concurrent.ListenableFuture;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -51,11 +50,15 @@ import java.util.concurrent.atomic.AtomicInteger;
  * completes.
  */
 class ListFuture<V> implements ListenableFuture<List<V>> {
-    @Nullable List<? extends ListenableFuture<? extends V>> mFutures;
-    @Nullable List<V> mValues;
+    @Nullable
+    List<? extends ListenableFuture<? extends V>> mFutures;
+    @Nullable
+    List<V> mValues;
     private final boolean mAllMustSucceed;
-    private final @NonNull AtomicInteger mRemaining;
-    private final @NonNull ListenableFuture<List<V>> mResult;
+    @NonNull
+    private final AtomicInteger mRemaining;
+    @NonNull
+    private final ListenableFuture<List<V>> mResult;
     CallbackToFutureAdapter.Completer<List<V>> mResultNotifier;
 
     /**
@@ -77,7 +80,7 @@ class ListFuture<V> implements ListenableFuture<List<V>> {
                 new CallbackToFutureAdapter.Resolver<List<V>>() {
                     @Override
                     public Object attachCompleter(
-                            CallbackToFutureAdapter.@NonNull Completer<List<V>> completer) {
+                            @NonNull CallbackToFutureAdapter.Completer<List<V>> completer) {
                         Preconditions.checkState(mResultNotifier == null,
                                 "The result can only set once!");
                         mResultNotifier = completer;
@@ -215,7 +218,8 @@ class ListFuture<V> implements ListenableFuture<List<V>> {
     }
 
     @Override
-    public @Nullable List<V> get() throws InterruptedException, ExecutionException {
+    @Nullable
+    public List<V> get() throws InterruptedException, ExecutionException {
         callAllGets();
 
         // This may still block in spite of the calls above, as the listeners may

@@ -23,10 +23,9 @@ import android.media.ExifInterface;
 import android.util.Size;
 import android.util.SizeF;
 
+import androidx.annotation.NonNull;
 import androidx.camera.core.internal.utils.ImageUtil;
 import androidx.core.util.Preconditions;
-
-import org.jspecify.annotations.NonNull;
 
 import java.util.Locale;
 
@@ -51,26 +50,30 @@ public class TransformUtils {
     /**
      * Gets the size of the {@link Rect}.
      */
-    public static @NonNull Size rectToSize(@NonNull Rect rect) {
+    @NonNull
+    public static Size rectToSize(@NonNull Rect rect) {
         return new Size(rect.width(), rect.height());
     }
 
     /** Returns a formatted string for a Rect. */
-    public static @NonNull String rectToString(@NonNull Rect rect) {
+    @NonNull
+    public static String rectToString(@NonNull Rect rect) {
         return String.format(Locale.US, "%s(%dx%d)", rect, rect.width(), rect.height());
     }
 
     /**
      * Transforms size to a {@link Rect} with zero left and top.
      */
-    public static @NonNull Rect sizeToRect(@NonNull Size size) {
+    @NonNull
+    public static Rect sizeToRect(@NonNull Size size) {
         return sizeToRect(size, 0, 0);
     }
 
     /**
      * Transforms a size to a {@link Rect} with given left and top.
      */
-    public static @NonNull Rect sizeToRect(@NonNull Size size, int left, int top) {
+    @NonNull
+    public static Rect sizeToRect(@NonNull Size size, int left, int top) {
         return new Rect(left, top, left + size.getWidth(), top + size.getHeight());
     }
 
@@ -85,14 +88,16 @@ public class TransformUtils {
     /**
      * Transforms size to a {@link RectF} with zero left and top.
      */
-    public static @NonNull RectF sizeToRectF(@NonNull Size size) {
+    @NonNull
+    public static RectF sizeToRectF(@NonNull Size size) {
         return sizeToRectF(size, 0, 0);
     }
 
     /**
      * Transforms a size to a {@link RectF} with given left and top.
      */
-    public static @NonNull RectF sizeToRectF(@NonNull Size size, int left, int top) {
+    @NonNull
+    public static RectF sizeToRectF(@NonNull Size size, int left, int top) {
         return new RectF(left, top, left + size.getWidth(), top + size.getHeight());
     }
 
@@ -102,7 +107,8 @@ public class TransformUtils {
      * @param size the size to reverse
      * @return reversed size
      */
-    public static @NonNull Size reverseSize(@NonNull Size size) {
+    @NonNull
+    public static Size reverseSize(@NonNull Size size) {
         return new Size(size.getHeight(), size.getWidth());
     }
 
@@ -112,7 +118,8 @@ public class TransformUtils {
      * @param sizeF the float size to reverse
      * @return reversed float size
      */
-    public static @NonNull SizeF reverseSizeF(@NonNull SizeF sizeF) {
+    @NonNull
+    public static SizeF reverseSizeF(@NonNull SizeF sizeF) {
         return new SizeF(sizeF.getHeight(), sizeF.getWidth());
     }
 
@@ -124,7 +131,8 @@ public class TransformUtils {
      * @return rotated size
      * @throws IllegalArgumentException if the rotation degrees is not a multiple of 90
      */
-    public static @NonNull Size rotateSize(@NonNull Size size, int rotationDegrees) {
+    @NonNull
+    public static Size rotateSize(@NonNull Size size, int rotationDegrees) {
         Preconditions.checkArgument(rotationDegrees % 90 == 0,
                 "Invalid rotation degrees: " + rotationDegrees);
         return is90or270(within360(rotationDegrees)) ? reverseSize(size) : size;
@@ -135,7 +143,8 @@ public class TransformUtils {
      *
      * <p> A 640, 480 rect rotated 90 degrees clockwise will become a 480, 640 rect.
      */
-    public static @NonNull RectF rotateRect(@NonNull RectF rect, int rotationDegrees) {
+    @NonNull
+    public static RectF rotateRect(@NonNull RectF rect, int rotationDegrees) {
         Preconditions.checkArgument(rotationDegrees % 90 == 0,
                 "Invalid rotation degrees: " + rotationDegrees);
         if (is90or270(within360(rotationDegrees))) {
@@ -193,7 +202,8 @@ public class TransformUtils {
      * @return rotated size
      * @throws IllegalArgumentException if the rotation degrees is not a multiple of.
      */
-    public static @NonNull Size getRotatedSize(@NonNull Rect cropRect, int rotationDegrees) {
+    @NonNull
+    public static Size getRotatedSize(@NonNull Rect cropRect, int rotationDegrees) {
         return rotateSize(rectToSize(cropRect), rotationDegrees);
     }
 
@@ -207,7 +217,8 @@ public class TransformUtils {
     /**
      * Converts an array of vertices to a {@link RectF}.
      */
-    public static @NonNull RectF verticesToRect(float @NonNull [] vertices) {
+    @NonNull
+    public static RectF verticesToRect(@NonNull float[] vertices) {
         return new RectF(
                 min(vertices[0], vertices[2], vertices[4], vertices[6]),
                 min(vertices[1], vertices[3], vertices[5], vertices[7]),
@@ -246,7 +257,8 @@ public class TransformUtils {
     /**
      * Converts a {@link Size} to a float array of vertices.
      */
-    public static float @NonNull [] sizeToVertices(@NonNull Size size) {
+    @NonNull
+    public static float[] sizeToVertices(@NonNull Size size) {
         return new float[]{0, 0, size.getWidth(), 0, size.getWidth(), size.getHeight(), 0,
                 size.getHeight()};
     }
@@ -254,7 +266,8 @@ public class TransformUtils {
     /**
      * Converts a {@link RectF} defined by top, left, right and bottom to an array of vertices.
      */
-    public static float @NonNull [] rectToVertices(@NonNull RectF rectF) {
+    @NonNull
+    public static float[] rectToVertices(@NonNull RectF rectF) {
         return new float[]{rectF.left, rectF.top, rectF.right, rectF.top, rectF.right, rectF.bottom,
                 rectF.left, rectF.bottom};
     }
@@ -329,7 +342,8 @@ public class TransformUtils {
      *                             c'-----------b'
      * </pre>
      */
-    public static @NonNull Matrix getRectToRect(
+    @NonNull
+    public static Matrix getRectToRect(
             @NonNull RectF source, @NonNull RectF target, int rotationDegrees) {
         return getRectToRect(source, target, rotationDegrees, /*mirroring=*/false);
     }
@@ -348,7 +362,8 @@ public class TransformUtils {
      *                                         b'-----------c'
      * </pre>
      */
-    public static @NonNull Matrix getRectToRect(
+    @NonNull
+    public static Matrix getRectToRect(
             @NonNull RectF source, @NonNull RectF target, int rotationDegrees, boolean mirroring) {
         // Map source to normalized space.
         Matrix matrix = new Matrix();
@@ -366,14 +381,16 @@ public class TransformUtils {
     /**
      * Gets the transform from a normalized space (-1, -1) - (1, 1) to the given rect.
      */
-    public static @NonNull Matrix getNormalizedToBuffer(@NonNull Rect viewPortRect) {
+    @NonNull
+    public static Matrix getNormalizedToBuffer(@NonNull Rect viewPortRect) {
         return getNormalizedToBuffer(new RectF(viewPortRect));
     }
 
     /**
      * Updates sensor to buffer transform based on crop rect.
      */
-    public static @NonNull Matrix updateSensorToBufferTransform(
+    @NonNull
+    public static Matrix updateSensorToBufferTransform(
             @NonNull Matrix original,
             @NonNull Rect cropRect) {
         Matrix matrix = new Matrix(original);
@@ -384,7 +401,8 @@ public class TransformUtils {
     /**
      * Gets the transform from a normalized space (-1, -1) - (1, 1) to the given rect.
      */
-    public static @NonNull Matrix getNormalizedToBuffer(@NonNull RectF viewPortRect) {
+    @NonNull
+    public static Matrix getNormalizedToBuffer(@NonNull RectF viewPortRect) {
         Matrix normalizedToBuffer = new Matrix();
         normalizedToBuffer.setRectToRect(NORMALIZED_RECT, viewPortRect, Matrix.ScaleToFit.FILL);
         return normalizedToBuffer;
@@ -393,7 +411,8 @@ public class TransformUtils {
     /**
      * Gets the transform matrix based on exif orientation.
      */
-    public static @NonNull Matrix getExifTransform(int exifOrientation, int width, int height) {
+    @NonNull
+    public static Matrix getExifTransform(int exifOrientation, int width, int height) {
         Matrix matrix = new Matrix();
 
         // Map the bitmap to a normalized space and perform transform. It's more readable, and it

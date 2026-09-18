@@ -17,9 +17,6 @@
 package androidx.camera.core.impl;
 
 
-import static androidx.camera.core.FlashState.NOT_FIRED;
-import static androidx.camera.core.FlashState.UNAVAILABLE;
-
 /**
  * This class defines the enumeration constants used for querying the camera capture mode and
  * results.
@@ -160,22 +157,6 @@ public final class CameraCaptureMetaData {
         READY,
 
         /** Flash has been fired. */
-        FIRED;
-
-        /**
-         * Returns the IntDef equivalent.
-         */
-        public @androidx.camera.core.FlashState.FlashState int toFlashState() {
-            switch (this) {
-                case NONE:
-                    return UNAVAILABLE;
-                case READY:
-                    return NOT_FIRED;
-                case FIRED:
-                    return androidx.camera.core.FlashState.FIRED;
-                default:
-                    return androidx.camera.core.FlashState.UNKNOWN;
-            }
-        }
+        FIRED
     }
 }

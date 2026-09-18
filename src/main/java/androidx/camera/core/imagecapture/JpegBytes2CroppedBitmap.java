@@ -25,11 +25,10 @@ import android.graphics.BitmapFactory;
 import android.graphics.BitmapRegionDecoder;
 import android.graphics.Rect;
 
+import androidx.annotation.NonNull;
 import androidx.camera.core.ImageCaptureException;
 import androidx.camera.core.processing.Operation;
 import androidx.camera.core.processing.Packet;
-
-import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 
@@ -38,9 +37,9 @@ import java.io.IOException;
  */
 final class JpegBytes2CroppedBitmap implements Operation<Packet<byte[]>, Packet<Bitmap>> {
 
+    @NonNull
     @Override
-    public @NonNull Packet<Bitmap> apply(@NonNull Packet<byte[]> packet)
-            throws ImageCaptureException {
+    public Packet<Bitmap> apply(@NonNull Packet<byte[]> packet) throws ImageCaptureException {
         Rect cropRect = packet.getCropRect();
         Bitmap bitmap = createCroppedBitmap(packet.getData(), cropRect);
         return Packet.of(
@@ -52,8 +51,9 @@ final class JpegBytes2CroppedBitmap implements Operation<Packet<byte[]>, Packet<
                 packet.getCameraCaptureResult());
     }
 
+    @NonNull
     @SuppressWarnings("deprecation")
-    private @NonNull Bitmap createCroppedBitmap(byte @NonNull [] jpegBytes, @NonNull Rect cropRect)
+    private Bitmap createCroppedBitmap(@NonNull byte[] jpegBytes, @NonNull Rect cropRect)
             throws ImageCaptureException {
         BitmapRegionDecoder decoder;
         try {

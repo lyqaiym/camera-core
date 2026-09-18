@@ -16,10 +16,10 @@
 
 package androidx.camera.core.impl;
 
-import com.google.auto.value.AutoValue;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
+import com.google.auto.value.AutoValue;
 
 /**
  * The configuration for all the output surfaces of the SessionProcessor.
@@ -29,7 +29,8 @@ public abstract class OutputSurfaceConfiguration {
     /**
      * Creates an OutputSurface instance.
      */
-    public static @NonNull OutputSurfaceConfiguration create(
+    @NonNull
+    public static OutputSurfaceConfiguration create(
             @NonNull OutputSurface previewOutputSurface,
             @NonNull OutputSurface imageCaptureOutputSurface,
             @Nullable OutputSurface imageAnalysisOutputSurface,
@@ -41,20 +42,24 @@ public abstract class OutputSurfaceConfiguration {
     /**
      * gets the preview {@link OutputSurface}.
      */
-    public abstract @NonNull OutputSurface getPreviewOutputSurface();
+    @NonNull
+    public abstract OutputSurface getPreviewOutputSurface();
 
     /**
      * gets the still capture {@link OutputSurface}.
      */
-    public abstract @NonNull OutputSurface getImageCaptureOutputSurface();
+    @NonNull
+    public abstract OutputSurface getImageCaptureOutputSurface();
 
     /**
      * gets the image analysis {@link OutputSurface}.
      */
-    public abstract @Nullable OutputSurface getImageAnalysisOutputSurface();
+    @Nullable
+    public abstract OutputSurface getImageAnalysisOutputSurface();
 
     /**
      * gets the postview {@link OutputSurface}.
      */
-    public abstract @Nullable OutputSurface getPostviewOutputSurface();
+    @Nullable
+    public abstract OutputSurface getPostviewOutputSurface();
 }

@@ -17,7 +17,6 @@ package androidx.camera.core
 
 import android.graphics.Matrix
 import android.graphics.Rect
-import android.graphics.SurfaceTexture
 import android.util.Range
 import android.util.Size
 import android.view.Surface
@@ -33,7 +32,6 @@ import androidx.test.filters.FlakyTest
 import androidx.test.filters.LargeTest
 import androidx.test.filters.SdkSuppress
 import androidx.test.filters.SmallTest
-import androidx.testutils.assertThrows
 import com.google.common.truth.Truth
 import java.lang.ref.PhantomReference
 import java.lang.ref.ReferenceQueue
@@ -86,7 +84,7 @@ class SurfaceRequestTest {
 
     @Test
     fun canRetrieveDynamicRange() {
-        val dynamicRange = DynamicRange.HLG_10_BIT
+        val dynamicRange = DynamicRange.HDR_UNSPECIFIED_10_BIT
         val request = createNewRequest(FAKE_SIZE, dynamicRange)
         Truth.assertThat(request.dynamicRange).isEqualTo(dynamicRange)
     }
@@ -98,26 +96,19 @@ class SurfaceRequestTest {
     }
 
     @Test
-    fun surfaceRequestConstructor_withUnspecifiedDynamicRange_throwsException() {
-        assertThrows<IllegalArgumentException> {
-            createNewRequest(size = FAKE_SIZE, dynamicRange = DynamicRange.UNSPECIFIED)
-        }
-    }
-
-    @Test
     @Suppress("UNCHECKED_CAST")
     fun setWillNotProvideSurface_resultsInWILL_NOT_PROVIDE_SURFACE() {
         val request = createNewRequest(FAKE_SIZE)
         val listener: Consumer<SurfaceRequest.Result> =
             Mockito.mock(Consumer::class.java) as Consumer<SurfaceRequest.Result>
         request.willNotProvideSurface()
-        request.provideSurface(SURFACE, CameraXExecutors.directExecutor(), listener)
+        request.provideSurface(MOCK_SURFACE, CameraXExecutors.directExecutor(), listener)
         Mockito.verify(listener)
             .accept(
                 ArgumentMatchers.eq(
                     SurfaceRequest.Result.of(
                         SurfaceRequest.Result.RESULT_WILL_NOT_PROVIDE_SURFACE,
-                        SURFACE
+                        MOCK_SURFACE
                     )
                 )
             )
@@ -128,7 +119,11 @@ class SurfaceRequestTest {
         val request = createNewRequest(FAKE_SIZE)
 
         // Complete the request
-        request.provideSurface(SURFACE, CameraXExecutors.directExecutor(), NO_OP_RESULT_LISTENER)
+        request.provideSurface(
+            MOCK_SURFACE,
+            CameraXExecutors.directExecutor(),
+            NO_OP_RESULT_LISTENER
+        )
         Truth.assertThat(request.willNotProvideSurface()).isFalse()
     }
 
@@ -154,7 +149,7 @@ class SurfaceRequestTest {
         val listener: Consumer<SurfaceRequest.Result> =
             Mockito.mock(Consumer::class.java) as Consumer<SurfaceRequest.Result>
         request.provideSurface(
-            SURFACE,
+            MOCK_SURFACE,
             ContextCompat.getMainExecutor(ApplicationProvider.getApplicationContext()),
             listener
         )
@@ -166,7 +161,7 @@ class SurfaceRequestTest {
                 ArgumentMatchers.eq(
                     SurfaceRequest.Result.of(
                         SurfaceRequest.Result.RESULT_SURFACE_USED_SUCCESSFULLY,
-                        SURFACE
+                        MOCK_SURFACE
                     )
                 )
             )
@@ -178,14 +173,18 @@ class SurfaceRequestTest {
         val request = createNewRequest(FAKE_SIZE)
         val listener: Consumer<SurfaceRequest.Result> =
             Mockito.mock(Consumer::class.java) as Consumer<SurfaceRequest.Result>
-        request.provideSurface(SURFACE, CameraXExecutors.directExecutor(), NO_OP_RESULT_LISTENER)
-        request.provideSurface(SURFACE, CameraXExecutors.directExecutor(), listener)
+        request.provideSurface(
+            MOCK_SURFACE,
+            CameraXExecutors.directExecutor(),
+            NO_OP_RESULT_LISTENER
+        )
+        request.provideSurface(MOCK_SURFACE, CameraXExecutors.directExecutor(), listener)
         Mockito.verify(listener)
             .accept(
                 ArgumentMatchers.eq(
                     SurfaceRequest.Result.of(
                         SurfaceRequest.Result.RESULT_SURFACE_ALREADY_PROVIDED,
-                        SURFACE
+                        MOCK_SURFACE
                     )
                 )
             )
@@ -209,7 +208,11 @@ class SurfaceRequestTest {
     @Test
     fun isServiced_trueAfterProvideSurface() {
         val request = createNewRequest(FAKE_SIZE)
-        request.provideSurface(SURFACE, CameraXExecutors.directExecutor(), NO_OP_RESULT_LISTENER)
+        request.provideSurface(
+            MOCK_SURFACE,
+            CameraXExecutors.directExecutor(),
+            NO_OP_RESULT_LISTENER
+        )
         Truth.assertThat(request.isServiced).isTrue()
     }
 
@@ -235,13 +238,13 @@ class SurfaceRequestTest {
         request.deferrableSurface.close()
         val listener: Consumer<SurfaceRequest.Result> =
             Mockito.mock(Consumer::class.java) as Consumer<SurfaceRequest.Result>
-        request.provideSurface(SURFACE, CameraXExecutors.directExecutor(), listener)
+        request.provideSurface(MOCK_SURFACE, CameraXExecutors.directExecutor(), listener)
         Mockito.verify(listener)
             .accept(
                 ArgumentMatchers.eq(
                     SurfaceRequest.Result.of(
                         SurfaceRequest.Result.RESULT_REQUEST_CANCELLED,
-                        SURFACE
+                        MOCK_SURFACE
                     )
                 )
             )
@@ -404,6 +407,6 @@ class SurfaceRequestTest {
             )
         }
         private val NO_OP_RESULT_LISTENER = Consumer { _: SurfaceRequest.Result? -> }
-        private val SURFACE = Surface(SurfaceTexture(0))
+        private val MOCK_SURFACE = Mockito.mock(Surface::class.java)
     }
 }

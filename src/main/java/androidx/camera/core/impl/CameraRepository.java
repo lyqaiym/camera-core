@@ -19,6 +19,7 @@ package androidx.camera.core.impl;
 import android.content.Context;
 
 import androidx.annotation.GuardedBy;
+import androidx.annotation.NonNull;
 import androidx.camera.core.CameraUnavailableException;
 import androidx.camera.core.InitializationException;
 import androidx.camera.core.Logger;
@@ -28,8 +29,6 @@ import androidx.concurrent.futures.CallbackToFutureAdapter;
 import androidx.core.util.Preconditions;
 
 import com.google.common.util.concurrent.ListenableFuture;
-
-import org.jspecify.annotations.NonNull;
 
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -72,7 +71,8 @@ public final class CameraRepository {
     /**
      * Clear and release all cameras from the repository.
      */
-    public @NonNull ListenableFuture<Void> deinit() {
+    @NonNull
+    public ListenableFuture<Void> deinit() {
         synchronized (mCamerasLock) {
             // If the camera list is empty, we can either return the current deinit future that
             // has not yet completed, or an immediate successful future if we are already
@@ -132,7 +132,8 @@ public final class CameraRepository {
      * @return a {@link CameraInternal} paired to this id
      * @throws IllegalArgumentException if there is no camera paired with the id
      */
-    public @NonNull CameraInternal getCamera(@NonNull String cameraId) {
+    @NonNull
+    public CameraInternal getCamera(@NonNull String cameraId) {
         synchronized (mCamerasLock) {
             CameraInternal cameraInternal = mCameras.get(cameraId);
             if (cameraInternal == null) {
@@ -146,7 +147,8 @@ public final class CameraRepository {
      *
      * @return set of all cameras
      */
-    public @NonNull LinkedHashSet<CameraInternal> getCameras() {
+    @NonNull
+    public LinkedHashSet<CameraInternal> getCameras() {
         synchronized (mCamerasLock) {
             return new LinkedHashSet<>(mCameras.values());
         }
@@ -156,7 +158,8 @@ public final class CameraRepository {
      *
      * @return set of all camera ids
      */
-    @NonNull Set<String> getCameraIds() {
+    @NonNull
+    Set<String> getCameraIds() {
         synchronized (mCamerasLock) {
             return new LinkedHashSet<>(mCameras.keySet());
         }

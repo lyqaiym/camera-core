@@ -29,6 +29,8 @@ import android.util.Rational;
 import android.util.Size;
 import android.view.Surface;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.camera.core.AspectRatio;
 import androidx.camera.core.impl.CameraInfoInternal;
 import androidx.camera.core.impl.ImageOutputConfig;
@@ -36,9 +38,6 @@ import androidx.camera.core.impl.UseCaseConfig;
 import androidx.camera.core.impl.utils.AspectRatioUtil;
 import androidx.camera.core.impl.utils.CameraOrientationUtil;
 import androidx.camera.core.impl.utils.CompareSizesByArea;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -72,7 +71,8 @@ class SupportedOutputSizesSorterLegacy {
      * 1. Filters out the candidate list according to the mini and max resolution.
      * 2. Sorts the candidate list according to legacy target aspect ratio or resolution settings.
      */
-    @NonNull List<Size> sortSupportedOutputSizes(
+    @NonNull
+    List<Size> sortSupportedOutputSizes(
             @NonNull List<Size> resolutionCandidateList,
             @NonNull UseCaseConfig<?> useCaseConfig) {
         if (resolutionCandidateList.isEmpty()) {
@@ -206,7 +206,8 @@ class SupportedOutputSizesSorterLegacy {
         return outputRatio;
     }
 
-    private @Nullable Size getTargetSize(@NonNull ImageOutputConfig imageOutputConfig) {
+    @Nullable
+    private Size getTargetSize(@NonNull ImageOutputConfig imageOutputConfig) {
         int targetRotation = imageOutputConfig.getTargetRotation(Surface.ROTATION_0);
         // Calibrate targetSize by the target rotation value.
         Size targetSize = imageOutputConfig.getTargetResolution(null);
@@ -223,7 +224,8 @@ class SupportedOutputSizesSorterLegacy {
      * also need to consider the mod 16 factor to find which aspect ratio of group the target size
      * might be put in. So that sizes of the group will be selected to use in the highest priority.
      */
-    private static @Nullable Rational getAspectRatioGroupKeyOfTargetSize(@Nullable Size targetSize,
+    @Nullable
+    private static Rational getAspectRatioGroupKeyOfTargetSize(@Nullable Size targetSize,
             @NonNull List<Size> resolutionCandidateList) {
         if (targetSize == null) {
             return null;
@@ -242,8 +244,9 @@ class SupportedOutputSizesSorterLegacy {
     }
 
     // Use target rotation to calibrate the size.
-    private static @Nullable Size flipSizeByRotation(@Nullable Size size, int targetRotation,
-            int lensFacing, int sensorOrientation) {
+    @Nullable
+    private static Size flipSizeByRotation(@Nullable Size size, int targetRotation, int lensFacing,
+            int sensorOrientation) {
         Size outputSize = size;
         // Calibrates the size with the display and sensor rotation degrees values.
         if (size != null && isRotationNeeded(targetRotation, lensFacing, sensorOrientation)) {

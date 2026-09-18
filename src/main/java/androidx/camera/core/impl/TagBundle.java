@@ -20,8 +20,8 @@ import android.hardware.camera2.CaptureRequest;
 import android.util.ArrayMap;
 import android.util.Pair;
 
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.util.Map;
 import java.util.Set;
@@ -47,7 +47,8 @@ public class TagBundle {
      *
      * @return an empty TagBundle containing no tag.
      */
-    public static @NonNull TagBundle emptyBundle() {
+    @NonNull
+    public static TagBundle emptyBundle() {
         return EMPTY_TAGBUNDLE;
     }
 
@@ -56,7 +57,8 @@ public class TagBundle {
      *
      * @return a TagBundle containing one tag.
      */
-    public static @NonNull TagBundle create(@NonNull Pair<String, Object> source) {
+    @NonNull
+    public static TagBundle create(@NonNull Pair<String, Object> source) {
         Map<String, Object> map = new ArrayMap<>();
         map.put(source.first, source.second);
         return new TagBundle(map);
@@ -70,7 +72,8 @@ public class TagBundle {
      * @param otherTagBundle TagBundle containing keys/values to be copied.
      * @return A new TagBundle pre-populated with keys/values.
      */
-    public static @NonNull TagBundle from(@NonNull TagBundle otherTagBundle) {
+    @NonNull
+    public static TagBundle from(@NonNull TagBundle otherTagBundle) {
         Map<String, Object> tags = new ArrayMap<>();
         for (String key: otherTagBundle.listKeys()) {
             tags.put(key, otherTagBundle.getTag(key));
@@ -85,7 +88,8 @@ public class TagBundle {
      * @param key      The key for query.
      * @return The tag associated with the key.
      */
-    public @Nullable Object getTag(@NonNull String key) {
+    @Nullable
+    public Object getTag(@NonNull String key) {
         return mTagMap.get(key);
     }
 
@@ -95,7 +99,8 @@ public class TagBundle {
      * @return A {@link Set} of keys contained within this configuration. It returns an empty set
      * if there are no keys in this TagBundle.
      */
-    public @NonNull Set<String> listKeys() {
+    @NonNull
+    public Set<String> listKeys() {
         return mTagMap.keySet();
     }
 
@@ -113,8 +118,9 @@ public class TagBundle {
      *
      * @return Returns a constant string value used to identify usage of CameraX.
      */
+    @NonNull
     @Override
-    public final @NonNull String toString() {
+    public final String toString() {
         return CAMERAX_USER_TAG_PREFIX;
     }
 }

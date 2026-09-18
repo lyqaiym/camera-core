@@ -20,9 +20,8 @@ import android.os.Build;
 import android.util.Log;
 
 import androidx.annotation.IntRange;
+import androidx.annotation.NonNull;
 import androidx.annotation.RestrictTo;
-
-import org.jspecify.annotations.NonNull;
 
 /**
  * Handles logging requests inside CameraX. Log messages are output only if:
@@ -163,7 +162,7 @@ public final class Logger {
      * {@linkplain #isDebugEnabled(String) loggable}.
      */
     public static void d(@NonNull String tag, @NonNull String message,
-            final @NonNull Throwable throwable) {
+            @NonNull final Throwable throwable) {
         final String truncatedTag = truncateTag(tag);
         if (isLogLevelEnabled(truncatedTag, Log.DEBUG)) {
             Log.d(truncatedTag, message, throwable);
@@ -186,7 +185,7 @@ public final class Logger {
      * {@linkplain #isInfoEnabled(String) loggable}.
      */
     public static void i(@NonNull String tag, @NonNull String message,
-            final @NonNull Throwable throwable) {
+            @NonNull final Throwable throwable) {
         final String truncatedTag = truncateTag(tag);
         if (isLogLevelEnabled(truncatedTag, Log.INFO)) {
             Log.i(truncatedTag, message, throwable);
@@ -209,7 +208,7 @@ public final class Logger {
      * {@linkplain #isWarnEnabled(String) loggable}.
      */
     public static void w(@NonNull String tag, @NonNull String message,
-            final @NonNull Throwable throwable) {
+            @NonNull final Throwable throwable) {
         final String truncatedTag = truncateTag(tag);
         if (isLogLevelEnabled(truncatedTag, Log.WARN)) {
             Log.w(truncatedTag, message, throwable);
@@ -232,7 +231,7 @@ public final class Logger {
      * {@linkplain #isErrorEnabled(String) loggable}.
      */
     public static void e(@NonNull String tag, @NonNull String message,
-            final @NonNull Throwable throwable) {
+            @NonNull final Throwable throwable) {
         final String truncatedTag = truncateTag(tag);
         if (isLogLevelEnabled(truncatedTag, Log.ERROR)) {
             Log.e(truncatedTag, message, throwable);
@@ -244,7 +243,8 @@ public final class Logger {
      * <p>
      * On API 26, the tag length limit of 23 characters was removed.
      */
-    private static @NonNull String truncateTag(@NonNull String tag) {
+    @NonNull
+    private static String truncateTag(@NonNull String tag) {
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.N_MR1 && MAX_TAG_LENGTH < tag.length()) {
             return tag.substring(0, MAX_TAG_LENGTH);
         }

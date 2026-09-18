@@ -16,10 +16,9 @@
 
 package androidx.camera.core.impl;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.camera.core.Logger;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -127,22 +126,26 @@ public final class UseCaseAttachState {
         return useCaseAttachInfo.getAttached();
     }
 
-    public @NonNull Collection<UseCaseConfig<?>> getAttachedUseCaseConfigs() {
+    @NonNull
+    public Collection<UseCaseConfig<?>> getAttachedUseCaseConfigs() {
         return Collections.unmodifiableCollection(
                 getUseCaseConfigs((useCaseAttachInfo) -> useCaseAttachInfo.getAttached()));
     }
 
-    public @NonNull Collection<SessionConfig> getAttachedSessionConfigs() {
+    @NonNull
+    public Collection<SessionConfig> getAttachedSessionConfigs() {
         return Collections.unmodifiableCollection(
                 getSessionConfigs((useCaseAttachInfo) -> useCaseAttachInfo.getAttached()));
     }
 
-    public @NonNull Collection<UseCaseAttachInfo> getAttachedUseCaseInfo() {
+    @NonNull
+    public Collection<UseCaseAttachInfo> getAttachedUseCaseInfo() {
         return Collections.unmodifiableCollection(
                 getUseCaseInfo((useCaseAttachInfo) -> useCaseAttachInfo.getAttached()));
     }
 
-    public @NonNull Collection<SessionConfig> getActiveAndAttachedSessionConfigs() {
+    @NonNull
+    public Collection<SessionConfig> getActiveAndAttachedSessionConfigs() {
         return Collections.unmodifiableCollection(
                 getSessionConfigs((useCaseAttachInfo) ->
                         useCaseAttachInfo.getActive() && useCaseAttachInfo.getAttached()));
@@ -182,7 +185,8 @@ public final class UseCaseAttachState {
     }
 
     /** Returns a session configuration builder for use cases which are both active and attached. */
-    public SessionConfig.@NonNull ValidatingBuilder getActiveAndAttachedBuilder() {
+    @NonNull
+    public SessionConfig.ValidatingBuilder getActiveAndAttachedBuilder() {
         SessionConfig.ValidatingBuilder validatingBuilder = new SessionConfig.ValidatingBuilder();
 
         List<String> list = new ArrayList<>();
@@ -200,7 +204,8 @@ public final class UseCaseAttachState {
     }
 
     /** Returns a session configuration builder for use cases which are attached. */
-    public SessionConfig.@NonNull ValidatingBuilder getAttachedBuilder() {
+    @NonNull
+    public SessionConfig.ValidatingBuilder getAttachedBuilder() {
         SessionConfig.ValidatingBuilder validatingBuilder = new SessionConfig.ValidatingBuilder();
         List<String> list = new ArrayList<>();
         for (Map.Entry<String, UseCaseAttachInfo> attachedUseCase :
@@ -271,13 +276,17 @@ public final class UseCaseAttachState {
     /** The set of state and configuration information for an attached use case. */
     public static final class UseCaseAttachInfo {
         /** The configurations required of the camera for the use case. */
-        private final @NonNull SessionConfig mSessionConfig;
+        @NonNull
+        private final SessionConfig mSessionConfig;
 
-        private final @NonNull UseCaseConfig<?> mUseCaseConfig;
+        @NonNull
+        private final UseCaseConfig<?> mUseCaseConfig;
 
-        private final @Nullable StreamSpec mStreamSpec;
+        @Nullable
+        private final StreamSpec mStreamSpec;
 
-        private final @Nullable List<UseCaseConfigFactory.CaptureType> mCaptureTypes;
+        @Nullable
+        private final List<UseCaseConfigFactory.CaptureType> mCaptureTypes;
 
         /**
          * True if the use case is currently attached (i.e. camera should have a capture session
@@ -301,19 +310,23 @@ public final class UseCaseAttachState {
             mCaptureTypes = captureTypes;
         }
 
-        public @NonNull UseCaseConfig<?> getUseCaseConfig() {
+        @NonNull
+        public UseCaseConfig<?> getUseCaseConfig() {
             return mUseCaseConfig;
         }
 
-        public @NonNull SessionConfig getSessionConfig() {
+        @NonNull
+        public SessionConfig getSessionConfig() {
             return mSessionConfig;
         }
 
-        public @Nullable StreamSpec getStreamSpec() {
+        @Nullable
+        public StreamSpec getStreamSpec() {
             return mStreamSpec;
         }
 
-        public @Nullable List<UseCaseConfigFactory.CaptureType> getCaptureTypes() {
+        @Nullable
+        public List<UseCaseConfigFactory.CaptureType> getCaptureTypes() {
             return mCaptureTypes;
         }
 
@@ -334,8 +347,9 @@ public final class UseCaseAttachState {
         }
 
         @SuppressWarnings("ObjectToString")
+        @NonNull
         @Override
-        public @NonNull String toString() {
+        public String toString() {
             return "UseCaseAttachInfo{" + "mSessionConfig=" + mSessionConfig + ", mUseCaseConfig="
                     + mUseCaseConfig + ", mStreamSpec=" + mStreamSpec + ", mCaptureTypes="
                     + mCaptureTypes + ", mAttached=" + mAttached + ", mActive=" + mActive + '}';

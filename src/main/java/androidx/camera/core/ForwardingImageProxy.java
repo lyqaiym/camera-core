@@ -20,10 +20,9 @@ import android.graphics.Rect;
 import android.media.Image;
 
 import androidx.annotation.GuardedBy;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -63,7 +62,8 @@ public abstract class ForwardingImageProxy implements ImageProxy {
     }
 
     @Override
-    public @NonNull Rect getCropRect() {
+    @NonNull
+    public Rect getCropRect() {
         return mImage.getCropRect();
     }
 
@@ -88,18 +88,21 @@ public abstract class ForwardingImageProxy implements ImageProxy {
     }
 
     @Override
-    public ImageProxy.PlaneProxy @NonNull [] getPlanes() {
+    @NonNull
+    public ImageProxy.PlaneProxy[] getPlanes() {
         return mImage.getPlanes();
     }
 
     @Override
-    public @NonNull ImageInfo getImageInfo() {
+    @NonNull
+    public ImageInfo getImageInfo() {
         return mImage.getImageInfo();
     }
 
+    @Nullable
     @Override
     @ExperimentalGetImage
-    public @Nullable Image getImage() {
+    public Image getImage() {
         return mImage.getImage();
     }
 

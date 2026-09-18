@@ -18,10 +18,9 @@ package androidx.camera.core.impl;
 
 import android.content.Context;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.camera.core.CameraInfo;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 /**
  * Provides the ability to create a {@link CameraConfig} given a {@link CameraInfo}.
@@ -33,5 +32,6 @@ public interface CameraConfigProvider {
     /**
      * Returns a camera config according to the input camera info.
      */
-    @Nullable CameraConfig getConfig(@NonNull CameraInfo cameraInfo, @NonNull Context context);
+    @Nullable
+    CameraConfig getConfig(@NonNull CameraInfo cameraInfo, @NonNull Context context);
 }

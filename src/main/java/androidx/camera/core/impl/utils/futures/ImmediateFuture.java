@@ -16,13 +16,12 @@
 
 package androidx.camera.core.impl.utils.futures;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.camera.core.Logger;
 import androidx.core.util.Preconditions;
 
 import com.google.common.util.concurrent.ListenableFuture;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.util.concurrent.Delayed;
 import java.util.concurrent.ExecutionException;
@@ -84,10 +83,12 @@ abstract class ImmediateFuture<V> implements ListenableFuture<V> {
     }
 
     @Override
-    public abstract @Nullable V get() throws ExecutionException;
+    @Nullable
+    public abstract V get() throws ExecutionException;
 
     @Override
-    public @Nullable V get(long timeout, @NonNull TimeUnit unit) throws ExecutionException {
+    @Nullable
+    public V get(long timeout, @NonNull TimeUnit unit) throws ExecutionException {
         Preconditions.checkNotNull(unit);
         return get();
     }
@@ -97,15 +98,17 @@ abstract class ImmediateFuture<V> implements ListenableFuture<V> {
         static final ImmediateFuture<Object> NULL_FUTURE =
                 new ImmediateSuccessfulFuture<>(null);
 
-        private final @Nullable V mValue;
+        @Nullable
+        private final V mValue;
 
         ImmediateSuccessfulFuture(@Nullable V value) {
             mValue = value;
         }
 
 
+        @Nullable
         @Override
-        public @Nullable V get() {
+        public V get() {
             return mValue;
         }
 
@@ -118,19 +121,22 @@ abstract class ImmediateFuture<V> implements ListenableFuture<V> {
 
     static class ImmediateFailedFuture<V> extends ImmediateFuture<V> {
 
-        private final @NonNull Throwable mCause;
+        @NonNull
+        private final Throwable mCause;
 
         ImmediateFailedFuture(@NonNull Throwable cause) {
             mCause = cause;
         }
 
+        @Nullable
         @Override
-        public @Nullable V get() throws ExecutionException {
+        public V get() throws ExecutionException {
             throw new ExecutionException(mCause);
         }
 
         @Override
-        public @NonNull String toString() {
+        @NonNull
+        public String toString() {
             // Behaviour analogous to AbstractResolvableFuture#toString().
             return super.toString() + "[status=FAILURE, cause=[" + mCause + "]]";
         }

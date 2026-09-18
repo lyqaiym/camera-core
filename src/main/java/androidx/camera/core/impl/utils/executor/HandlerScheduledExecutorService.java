@@ -20,12 +20,11 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
 
+import androidx.annotation.NonNull;
 import androidx.camera.core.impl.utils.futures.Futures;
 import androidx.concurrent.futures.CallbackToFutureAdapter;
 
 import com.google.common.util.concurrent.ListenableFuture;
-
-import org.jspecify.annotations.NonNull;
 
 import java.util.List;
 import java.util.concurrent.AbstractExecutorService;
@@ -90,7 +89,7 @@ final class HandlerScheduledExecutorService extends AbstractExecutorService impl
 
     @Override
     public ScheduledFuture<?> schedule(
-            final @NonNull Runnable command,
+            @NonNull final Runnable command,
             long delay,
             @NonNull TimeUnit unit) {
         Callable<Void> wrapper = new Callable<Void>() {
@@ -104,7 +103,8 @@ final class HandlerScheduledExecutorService extends AbstractExecutorService impl
     }
 
     @Override
-    public <V> @NonNull ScheduledFuture<V> schedule(
+    @NonNull
+    public <V> ScheduledFuture<V> schedule(
             @NonNull Callable<V> callable,
             long delay,
             @NonNull TimeUnit unit) {
@@ -119,7 +119,8 @@ final class HandlerScheduledExecutorService extends AbstractExecutorService impl
     }
 
     @Override
-    public @NonNull ScheduledFuture<?> scheduleAtFixedRate(
+    @NonNull
+    public ScheduledFuture<?> scheduleAtFixedRate(
             @NonNull Runnable command,
             long initialDelay,
             long period,
@@ -130,8 +131,9 @@ final class HandlerScheduledExecutorService extends AbstractExecutorService impl
     }
 
     @Override
-    public @NonNull ScheduledFuture<?> scheduleWithFixedDelay(@NonNull Runnable command,
-            long initialDelay, long delay, @NonNull TimeUnit unit) {
+    @NonNull
+    public ScheduledFuture<?> scheduleWithFixedDelay(@NonNull Runnable command, long initialDelay,
+            long delay, @NonNull TimeUnit unit) {
         throw new UnsupportedOperationException(
                 HandlerScheduledExecutorService.class.getSimpleName()
                         + " does not yet support fixed-delay scheduling.");
@@ -145,7 +147,8 @@ final class HandlerScheduledExecutorService extends AbstractExecutorService impl
     }
 
     @Override
-    public @NonNull List<Runnable> shutdownNow() {
+    @NonNull
+    public List<Runnable> shutdownNow() {
         throw new UnsupportedOperationException(
                 HandlerScheduledExecutorService.class.getSimpleName()
                         + " cannot be shut down. Use Looper.quitSafely().");
@@ -195,7 +198,7 @@ final class HandlerScheduledExecutorService extends AbstractExecutorService impl
 
                         @Override
                         public Object attachCompleter(
-                                CallbackToFutureAdapter.@NonNull Completer<V> completer) throws
+                                @NonNull CallbackToFutureAdapter.Completer<V> completer) throws
                                 RejectedExecutionException {
 
                             completer.addCancellationListener(new Runnable() {

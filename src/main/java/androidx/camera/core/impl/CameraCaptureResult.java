@@ -20,6 +20,8 @@ import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.camera.core.impl.CameraCaptureMetaData.AeMode;
 import androidx.camera.core.impl.CameraCaptureMetaData.AeState;
 import androidx.camera.core.impl.CameraCaptureMetaData.AfMode;
@@ -29,34 +31,38 @@ import androidx.camera.core.impl.CameraCaptureMetaData.AwbState;
 import androidx.camera.core.impl.CameraCaptureMetaData.FlashState;
 import androidx.camera.core.impl.utils.ExifData;
 
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
-
 /**
  * The result of a single image capture.
  */
 public interface CameraCaptureResult {
 
     /** Returns the current auto focus mode of operation. */
-    @NonNull AfMode getAfMode();
+    @NonNull
+    AfMode getAfMode();
 
     /** Returns the current auto focus state. */
-    @NonNull AfState getAfState();
+    @NonNull
+    AfState getAfState();
 
     /** Returns the current auto exposure state. */
-    @NonNull AeState getAeState();
+    @NonNull
+    AeState getAeState();
 
     /** Returns the current auto white balance state. */
-    @NonNull AwbState getAwbState();
+    @NonNull
+    AwbState getAwbState();
 
     /** Returns the current flash state. */
-    @NonNull FlashState getFlashState();
+    @NonNull
+    FlashState getFlashState();
 
     /** Returns the current auto exposure mode. */
-    @NonNull AeMode getAeMode();
+    @NonNull
+    AeMode getAeMode();
 
     /** Returns the current auto white balance mode. */
-    @NonNull AwbMode getAwbMode();
+    @NonNull
+    AwbMode getAwbMode();
     /**
      * Returns the timestamp in nanoseconds.
      *
@@ -65,10 +71,11 @@ public interface CameraCaptureResult {
     long getTimestamp();
 
     /** Returns the TagBundle object associated with the capture request. */
-    @NonNull TagBundle getTagBundle();
+    @NonNull
+    TagBundle getTagBundle();
 
     /** Populates the given Exif.Builder with attributes from this CameraCaptureResult. */
-    default void populateExifData(ExifData.@NonNull Builder exifBuilder) {
+    default void populateExifData(@NonNull ExifData.Builder exifBuilder) {
         exifBuilder.setFlashState(getFlashState());
     }
 
@@ -78,49 +85,58 @@ public interface CameraCaptureResult {
      * @return The {@link CaptureResult}.
      * @see CameraDevice#createReprocessCaptureRequest(TotalCaptureResult)
      */
-    default @Nullable CaptureResult getCaptureResult() {
+    @Nullable
+    default CaptureResult getCaptureResult() {
         return null;
     }
 
     /** An implementation of CameraCaptureResult which always return default results. */
     final class EmptyCameraCaptureResult implements CameraCaptureResult {
 
-        public static @NonNull CameraCaptureResult create() {
+        @NonNull
+        public static CameraCaptureResult create() {
             return new EmptyCameraCaptureResult();
         }
 
+        @NonNull
         @Override
-        public @NonNull AfMode getAfMode() {
+        public AfMode getAfMode() {
             return AfMode.UNKNOWN;
         }
 
+        @NonNull
         @Override
-        public @NonNull AfState getAfState() {
+        public AfState getAfState() {
             return AfState.UNKNOWN;
         }
 
+        @NonNull
         @Override
-        public @NonNull AeState getAeState() {
+        public AeState getAeState() {
             return AeState.UNKNOWN;
         }
 
+        @NonNull
         @Override
-        public @NonNull AwbState getAwbState() {
+        public AwbState getAwbState() {
             return AwbState.UNKNOWN;
         }
 
+        @NonNull
         @Override
-        public @NonNull FlashState getFlashState() {
+        public FlashState getFlashState() {
             return FlashState.UNKNOWN;
         }
 
+        @NonNull
         @Override
-        public @NonNull AeMode getAeMode() {
+        public AeMode getAeMode() {
             return AeMode.UNKNOWN;
         }
 
+        @NonNull
         @Override
-        public @NonNull AwbMode getAwbMode() {
+        public AwbMode getAwbMode() {
             return AwbMode.UNKNOWN;
         }
 
@@ -130,12 +146,14 @@ public interface CameraCaptureResult {
         }
 
         @Override
-        public @NonNull TagBundle getTagBundle() {
+        @NonNull
+        public TagBundle getTagBundle() {
             return TagBundle.emptyBundle();
         }
 
+        @Nullable
         @Override
-        public @Nullable CaptureResult getCaptureResult() {
+        public CaptureResult getCaptureResult() {
             return null;
         }
     }

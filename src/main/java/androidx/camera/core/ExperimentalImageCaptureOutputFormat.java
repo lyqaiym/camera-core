@@ -14,25 +14,19 @@
  * limitations under the License.
  */
 
-package androidx.camera.core.internal.compat.quirk;
+package androidx.camera.core;
 
-import android.util.Range;
+import static java.lang.annotation.RetentionPolicy.CLASS;
 
-import androidx.camera.core.impl.Quirk;
-import androidx.camera.core.impl.StreamSpec;
+import androidx.annotation.RequiresOptIn;
 
-import org.jspecify.annotations.NonNull;
+import java.lang.annotation.Retention;
 
 /**
- * A Quirk interface denotes devices have specific issue and can be avoided by specific AE FPS
- * range setting.
+ * Denotes that the annotated method uses an experimental path for configuring output format
+ * of {@link ImageCapture} or related querying in {@link ImageCaptureCapabilities}.
  */
-public interface AeFpsRangeQuirk extends Quirk {
-
-    /**
-     * Returns the target AE FPS range to avoid the issue.
-     */
-    default @NonNull Range<Integer> getTargetAeFpsRange() {
-        return StreamSpec.FRAME_RATE_RANGE_UNSPECIFIED;
-    }
+@Retention(CLASS)
+@RequiresOptIn
+public @interface ExperimentalImageCaptureOutputFormat {
 }

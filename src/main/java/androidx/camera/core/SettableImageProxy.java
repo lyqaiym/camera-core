@@ -20,10 +20,9 @@ import android.graphics.Rect;
 import android.util.Size;
 
 import androidx.annotation.GuardedBy;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 /**
  * An {@link ImageProxy} which overwrites the {@link ImageInfo}.
@@ -35,7 +34,8 @@ public final class SettableImageProxy extends ForwardingImageProxy {
     private final ImageInfo mImageInfo;
 
     @GuardedBy("mLock")
-    private @Nullable Rect mCropRect;
+    @Nullable
+    private Rect mCropRect;
 
     private final int mWidth;
     private final int mHeight;
@@ -70,8 +70,9 @@ public final class SettableImageProxy extends ForwardingImageProxy {
         mImageInfo = imageInfo;
     }
 
+    @NonNull
     @Override
-    public @NonNull Rect getCropRect() {
+    public Rect getCropRect() {
         synchronized (mLock) {
             if (mCropRect == null) {
                 return new Rect(0, 0, getWidth(), getHeight());
@@ -105,7 +106,8 @@ public final class SettableImageProxy extends ForwardingImageProxy {
     }
 
     @Override
-    public @NonNull ImageInfo getImageInfo() {
+    @NonNull
+    public ImageInfo getImageInfo() {
         return mImageInfo;
     }
 }

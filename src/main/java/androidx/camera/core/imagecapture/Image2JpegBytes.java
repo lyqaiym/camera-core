@@ -29,6 +29,7 @@ import static java.util.Objects.requireNonNull;
 import android.graphics.Rect;
 import android.util.Size;
 
+import androidx.annotation.NonNull;
 import androidx.camera.core.ImageCapture;
 import androidx.camera.core.ImageCaptureException;
 import androidx.camera.core.ImageProxy;
@@ -40,8 +41,6 @@ import androidx.camera.core.processing.Operation;
 import androidx.camera.core.processing.Packet;
 
 import com.google.auto.value.AutoValue;
-
-import org.jspecify.annotations.NonNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -56,9 +55,9 @@ final class Image2JpegBytes implements Operation<Image2JpegBytes.In, Packet<byte
         mJpegMetadataCorrector = new JpegMetadataCorrector(quirks);
     }
 
+    @NonNull
     @Override
-    public @NonNull Packet<byte[]> apply(Image2JpegBytes.@NonNull In input)
-            throws ImageCaptureException {
+    public Packet<byte[]> apply(@NonNull Image2JpegBytes.In input) throws ImageCaptureException {
         try {
             int imageFormat = input.getPacket().getFormat();
             switch (imageFormat) {
@@ -76,7 +75,7 @@ final class Image2JpegBytes implements Operation<Image2JpegBytes.In, Packet<byte
         }
     }
 
-    private Packet<byte[]> processJpegImage(Image2JpegBytes.@NonNull In input, int imageFormat) {
+    private Packet<byte[]> processJpegImage(@NonNull Image2JpegBytes.In input, int imageFormat) {
         Packet<ImageProxy> packet = input.getPacket();
         return Packet.of(
                 mJpegMetadataCorrector.jpegImageToJpegByteArray(packet.getData()),
@@ -89,7 +88,7 @@ final class Image2JpegBytes implements Operation<Image2JpegBytes.In, Packet<byte
                 packet.getCameraCaptureResult());
     }
 
-    private Packet<byte[]> processYuvImage(Image2JpegBytes.@NonNull In input)
+    private Packet<byte[]> processYuvImage(@NonNull Image2JpegBytes.In input)
             throws ImageCaptureException {
         Packet<ImageProxy> packet = input.getPacket();
         ImageProxy image = packet.getData();
@@ -119,7 +118,7 @@ final class Image2JpegBytes implements Operation<Image2JpegBytes.In, Packet<byte
                 packet.getCameraCaptureResult());
     }
 
-    private static Exif extractExif(byte @NonNull [] jpegBytes) throws ImageCaptureException {
+    private static Exif extractExif(@NonNull byte[] jpegBytes) throws ImageCaptureException {
         try {
             return createFromInputStream(new ByteArrayInputStream(jpegBytes));
         } catch (IOException e) {
@@ -135,7 +134,8 @@ final class Image2JpegBytes implements Operation<Image2JpegBytes.In, Packet<byte
 
         abstract int getJpegQuality();
 
-        static @NonNull In of(@NonNull Packet<ImageProxy> imagePacket, int jpegQuality) {
+        @NonNull
+        static In of(@NonNull Packet<ImageProxy> imagePacket, int jpegQuality) {
             return new AutoValue_Image2JpegBytes_In(imagePacket, jpegQuality);
         }
     }

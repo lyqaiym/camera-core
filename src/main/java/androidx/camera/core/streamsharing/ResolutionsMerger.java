@@ -36,6 +36,7 @@ import android.util.Rational;
 import android.util.Size;
 import android.view.Surface;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 import androidx.camera.core.Logger;
 import androidx.camera.core.impl.CameraInfoInternal;
@@ -46,8 +47,6 @@ import androidx.camera.core.impl.UseCaseConfig;
 import androidx.camera.core.impl.utils.CompareSizesByArea;
 import androidx.camera.core.internal.SupportedOutputSizesSorter;
 import androidx.camera.core.resolutionselector.ResolutionSelector;
-
-import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -71,13 +70,20 @@ public class ResolutionsMerger {
     // The width to height ratio that has same area when cropping into 4:3 and 16:9.
     private static final double SAME_AREA_WIDTH_HEIGHT_RATIO = sqrt(4.0 / 3.0 * 16.0 / 9.0);
 
-    private final @NonNull Size mSensorSize;
-    private final @NonNull Rational mSensorAspectRatio;
-    private final @NonNull Rational mFallbackAspectRatio;
-    private final @NonNull Set<UseCaseConfig<?>> mChildrenConfigs;
-    private final @NonNull SupportedOutputSizesSorter mSizeSorter;
-    private final @NonNull CameraInfoInternal mCameraInfo;
-    private final @NonNull Map<UseCaseConfig<?>, List<Size>> mChildSizesCache = new HashMap<>();
+    @NonNull
+    private final Size mSensorSize;
+    @NonNull
+    private final Rational mSensorAspectRatio;
+    @NonNull
+    private final Rational mFallbackAspectRatio;
+    @NonNull
+    private final Set<UseCaseConfig<?>> mChildrenConfigs;
+    @NonNull
+    private final SupportedOutputSizesSorter mSizeSorter;
+    @NonNull
+    private final CameraInfoInternal mCameraInfo;
+    @NonNull
+    private final Map<UseCaseConfig<?>, List<Size>> mChildSizesCache = new HashMap<>();
 
     ResolutionsMerger(@NonNull CameraInternal cameraInternal,
             @NonNull Set<UseCaseConfig<?>> childrenConfigs) {
@@ -109,7 +115,8 @@ public class ResolutionsMerger {
      * <p> This method calculates the resolution for the parent {@link StreamSharing} based on 1)
      * the supported PRIV resolutions, 2) the sensor size and 3) the children's configs.
      */
-    @NonNull List<Size> getMergedResolutions(@NonNull MutableConfig parentConfig) {
+    @NonNull
+    List<Size> getMergedResolutions(@NonNull MutableConfig parentConfig) {
         List<Size> candidateSizes = getCameraSupportedResolutions();
 
         // Add high resolutions if they need to be included.
@@ -130,11 +137,10 @@ public class ResolutionsMerger {
     }
 
     /**
-     * Returns a {@link PreferredChildSize} object containing the preferred size information for a
-     * child.
+     * Returns a preferred pair composed of a crop rect before scaling and a size after scaling.
      *
      * <p>The first size in the child's ordered size list that does not require the parent to
-     * upscale and does not cause double-cropping will be used to generate the result, or {@code
+     * upscale and does not cause double-cropping will be used to generate the pair, or {@code
      * parentCropRect} will be used if no matching is found.
      *
      * <p>The returned crop rect and size will have the same aspect-ratio. When {@code
@@ -144,10 +150,9 @@ public class ResolutionsMerger {
      * <p>Notes that the input {@code childConfig} is expected to be one of the values that use to
      * construct the {@link ResolutionsMerger}, if not an IllegalArgumentException will be thrown.
      */
-    @NonNull PreferredChildSize getPreferredChildSize(
-            @NonNull UseCaseConfig<?> childConfig,
-            @NonNull Rect parentCropRect,
-            int sensorToBufferRotationDegrees,
+    @NonNull
+    Pair<Rect, Size> getPreferredChildSizePair(@NonNull UseCaseConfig<?> childConfig,
+            @NonNull Rect parentCropRect, int sensorToBufferRotationDegrees,
             boolean isViewportSet) {
         // For easier in following computations, width and height are reverted when the rotation
         // degrees of sensor-to-buffer is 90 or 270.
@@ -157,27 +162,27 @@ public class ResolutionsMerger {
             isWidthHeightRevertedForComputation = true;
         }
 
-        // Get preferred child size.
-        PreferredChildSize preferredChildSize = getPreferredChildSizeInternal(
-                parentCropRect, childConfig, isViewportSet);
+        // Get preferred child size pair.
+        Pair<Rect, Size> pair = getPreferredChildSizePairInternal(parentCropRect, childConfig,
+                isViewportSet);
+        Rect cropRectBeforeScaling = pair.first;
+        Size childSizeToScale = pair.second;
 
         // Restore the reversion of width and height
         if (isWidthHeightRevertedForComputation) {
-            preferredChildSize = new PreferredChildSize(
-                    reverseRect(preferredChildSize.getCropRectBeforeScaling()),
-                    reverseSize(preferredChildSize.getChildSizeToScale()),
-                    preferredChildSize.getOriginalSelectedChildSize());
+            childSizeToScale = reverseSize(childSizeToScale);
+            cropRectBeforeScaling = reverseRect(cropRectBeforeScaling);
         }
 
-        return preferredChildSize;
+        return new Pair<>(cropRectBeforeScaling, childSizeToScale);
+
     }
 
-    private @NonNull PreferredChildSize getPreferredChildSizeInternal(
-            @NonNull Rect parentCropRect, @NonNull UseCaseConfig<?> childConfig,
-            boolean isViewportSet) {
+    @NonNull
+    private Pair<Rect, Size> getPreferredChildSizePairInternal(@NonNull Rect parentCropRect,
+            @NonNull UseCaseConfig<?> childConfig, boolean isViewportSet) {
         Rect cropRectBeforeScaling;
         Size childSizeToScale;
-        Size selectedChildSize;
 
         if (isViewportSet) {
             cropRectBeforeScaling = parentCropRect;
@@ -185,16 +190,14 @@ public class ResolutionsMerger {
             // When viewport is set, child size needs to be cropped to match viewport's
             // aspect-ratio.
             Size viewPortSize = rectToSize(parentCropRect);
-            Pair<Size, Size> pair = getPreferredChildSizeForViewport(viewPortSize, childConfig);
-            selectedChildSize = pair.first;
-            childSizeToScale = pair.second;
+            childSizeToScale = getPreferredChildSizeForViewport(viewPortSize, childConfig);
         } else {
             Size parentSize = rectToSize(parentCropRect);
-            childSizeToScale = selectedChildSize = getPreferredChildSize(parentSize, childConfig);
+            childSizeToScale = getPreferredChildSize(parentSize, childConfig);
             cropRectBeforeScaling = getCropRectOfReferenceAspectRatio(parentSize, childSizeToScale);
         }
 
-        return new PreferredChildSize(cropRectBeforeScaling, childSizeToScale, selectedChildSize);
+        return new Pair<>(cropRectBeforeScaling, childSizeToScale);
     }
 
     /**
@@ -209,8 +212,8 @@ public class ResolutionsMerger {
      * construct the {@link ResolutionsMerger}, if not an IllegalArgumentException will be thrown.
      */
     @VisibleForTesting
-    @NonNull Size getPreferredChildSize(@NonNull Size parentSize,
-            @NonNull UseCaseConfig<?> childConfig) {
+    @NonNull
+    Size getPreferredChildSize(@NonNull Size parentSize, @NonNull UseCaseConfig<?> childConfig) {
         // Select the first child resolution that does not result in double-cropping and upscaling.
         List<Size> candidateChildSizes = getSortedChildSizes(childConfig);
         for (Size childSize : candidateChildSizes) {
@@ -247,7 +250,8 @@ public class ResolutionsMerger {
      * construct the {@link ResolutionsMerger}, if not an IllegalArgumentException will be thrown.
      */
     @VisibleForTesting
-    @NonNull Pair<Size, Size> getPreferredChildSizeForViewport(@NonNull Size parentSize,
+    @NonNull
+    Size getPreferredChildSizeForViewport(@NonNull Size parentSize,
             @NonNull UseCaseConfig<?> childConfig) {
         List<Size> candidateChildSizes = getSortedChildSizes(childConfig);
 
@@ -256,18 +260,20 @@ public class ResolutionsMerger {
                     getCropRectOfReferenceAspectRatio(childSize, parentSize));
 
             if (!hasUpscaling(childSizeToCrop, parentSize)) {
-                return Pair.create(childSize, childSizeToCrop);
+                return childSizeToCrop;
             }
         }
 
-        return Pair.create(parentSize, parentSize);
+        return parentSize;
     }
 
-    private @NonNull List<Size> getCameraSupportedResolutions() {
+    @NonNull
+    private List<Size> getCameraSupportedResolutions() {
         return mCameraInfo.getSupportedResolutions(INTERNAL_DEFINED_IMAGE_FORMAT_PRIVATE);
     }
 
-    private @NonNull List<Size> getCameraSupportedHighResolutions() {
+    @NonNull
+    private List<Size> getCameraSupportedHighResolutions() {
         return mCameraInfo.getSupportedHighResolutions(INTERNAL_DEFINED_IMAGE_FORMAT_PRIVATE);
     }
 
@@ -292,8 +298,8 @@ public class ResolutionsMerger {
         return false;
     }
 
-    private @NonNull List<Size> selectParentResolutions(
-            @NonNull List<Size> candidateParentResolutions) {
+    @NonNull
+    private List<Size> selectParentResolutions(@NonNull List<Size> candidateParentResolutions) {
         // The following sequence of parent resolution selection is used to prevent double-cropping
         // from happening:
         // 1. Add sensor aspect-ratio resolutions, which do not result in double-cropping with any
@@ -374,7 +380,8 @@ public class ResolutionsMerger {
         return result;
     }
 
-    private @NonNull List<Size> selectOtherAspectRatioParentResolutionsWithFovPriority(
+    @NonNull
+    private List<Size> selectOtherAspectRatioParentResolutionsWithFovPriority(
             @NonNull List<Size> candidates, boolean allowDoubleCropping) {
         Map<Rational, List<Size>> ratioToSizesMap = groupSizesByAspectRatio(candidates);
 
@@ -398,7 +405,8 @@ public class ResolutionsMerger {
         return result;
     }
 
-    private @NonNull Map<Rational, List<Size>> groupSizesByAspectRatio(@NonNull List<Size> sizes) {
+    @NonNull
+    private Map<Rational, List<Size>> groupSizesByAspectRatio(@NonNull List<Size> sizes) {
         Map<Rational, List<Size>> result = new HashMap<>();
 
         // Add 4:3 and 16:9 first so that other mod-16 sizes won't introduce additional keys.
@@ -445,7 +453,8 @@ public class ResolutionsMerger {
      * <p>Notes that the input {@code childConfig} is expected to be one of the values that use to
      * construct the {@link ResolutionsMerger}, if not an IllegalArgumentException will be thrown.
      */
-    private @NonNull List<Size> getSortedChildSizes(@NonNull UseCaseConfig<?> childConfig) {
+    @NonNull
+    private List<Size> getSortedChildSizes(@NonNull UseCaseConfig<?> childConfig) {
         if (!mChildrenConfigs.contains(childConfig)) {
             throw new IllegalArgumentException("Invalid child config: " + childConfig);
         }
@@ -473,7 +482,8 @@ public class ResolutionsMerger {
         return false;
     }
 
-    private @NonNull Set<Size> getChildrenRequiredResolutions() {
+    @NonNull
+    private Set<Size> getChildrenRequiredResolutions() {
         Set<Size> result = new HashSet<>();
         for (UseCaseConfig<?> childConfig : mChildrenConfigs) {
             List<Size> childSizes = getSortedChildSizes(childConfig);
@@ -483,8 +493,9 @@ public class ResolutionsMerger {
         return result;
     }
 
-    private @NonNull List<Size> filterOutChildSizesCausingDoubleCropping(
-            @NonNull Rational parentAspectRatio, @NonNull List<Size> childSizes) {
+    @NonNull
+    private List<Size> filterOutChildSizesCausingDoubleCropping(@NonNull Rational parentAspectRatio,
+            @NonNull List<Size> childSizes) {
         List<Size> result = new ArrayList<>();
         for (Size childSize: childSizes) {
             if (!isDoubleCropping(parentAspectRatio, childSize)) {
@@ -547,13 +558,15 @@ public class ResolutionsMerger {
      * Returns the crop rectangle for target that has the same aspect-ratio as the reference.
      */
     @VisibleForTesting
-    static @NonNull Rect getCropRectOfReferenceAspectRatio(@NonNull Size targetSize,
+    @NonNull
+    static Rect getCropRectOfReferenceAspectRatio(@NonNull Size targetSize,
             @NonNull Size referenceSize) {
         Rational referenceRatio = toRational(referenceSize);
         return getCenterCroppedRectangle(referenceRatio, targetSize);
     }
 
-    private static @NonNull List<Size> getSupportedPrivResolutions(
+    @NonNull
+    private static List<Size> getSupportedPrivResolutions(
             @NonNull List<Pair<Integer, Size[]>> supportedResolutionsMap) {
         for (Pair<Integer, Size[]> pair : supportedResolutionsMap) {
             if (pair.first.equals(INTERNAL_DEFINED_IMAGE_FORMAT_PRIVATE)) {
@@ -571,7 +584,8 @@ public class ResolutionsMerger {
      * resolution can have a different aspect-ratio than the parents without causing
      * double-cropping.
      */
-    private static @NonNull Rational getSensorAspectRatio(@NonNull Size sensorSize) {
+    @NonNull
+    private static Rational getSensorAspectRatio(@NonNull Size sensorSize) {
         Rational result = findCloserAspectRatio(sensorSize);
         Logger.d(TAG, "The closer aspect ratio to the sensor size (" + sensorSize + ") is "
                 + result + ".");
@@ -579,7 +593,8 @@ public class ResolutionsMerger {
         return result;
     }
 
-    private static @NonNull Rational findCloserAspectRatio(@NonNull Size size) {
+    @NonNull
+    private static Rational findCloserAspectRatio(@NonNull Size size) {
         double widthHeightRatio = size.getWidth() / (double) size.getHeight();
 
         if (widthHeightRatio > SAME_AREA_WIDTH_HEIGHT_RATIO) {
@@ -591,11 +606,13 @@ public class ResolutionsMerger {
 
     /** @noinspection SuspiciousNameCombination */
     @VisibleForTesting
-    static @NonNull Rect reverseRect(@NonNull Rect rect) {
+    @NonNull
+    static Rect reverseRect(@NonNull Rect rect) {
         return new Rect(rect.top, rect.left, rect.bottom, rect.right);
     }
 
-    private static @NonNull Rect getCenterCroppedRectangle(@NonNull Rational cropRatio,
+    @NonNull
+    private static Rect getCenterCroppedRectangle(@NonNull Rational cropRatio,
             @NonNull Size baseSize) {
         int width = baseSize.getWidth();
         int height = baseSize.getHeight();
@@ -627,7 +644,8 @@ public class ResolutionsMerger {
      * <p>Parent resolutions with fallback aspect-ratio are considered to be cropped, so child
      * resolution should not different to the parent or double-cropping will happen.
      */
-    private static @NonNull Rational getFallbackAspectRatio(@NonNull Rational sensorAspectRatio) {
+    @NonNull
+    private static Rational getFallbackAspectRatio(@NonNull Rational sensorAspectRatio) {
         if (sensorAspectRatio.equals(ASPECT_RATIO_4_3)) {
             return ASPECT_RATIO_16_9;
         } else if (sensorAspectRatio.equals(ASPECT_RATIO_16_9)) {
@@ -646,7 +664,8 @@ public class ResolutionsMerger {
     }
 
     /** Removes duplicate sizes and preserves the order. */
-    private static @NonNull List<Size> removeDuplicates(@NonNull List<Size> resolutions) {
+    @NonNull
+    private static List<Size> removeDuplicates(@NonNull List<Size> resolutions) {
         if (resolutions.isEmpty()) {
             return resolutions;
         }
@@ -659,7 +678,8 @@ public class ResolutionsMerger {
      * <p>The order of the {@code resolutionsToFilter} will be preserved in the resulting list.
      */
     @VisibleForTesting
-    static @NonNull List<Size> filterResolutionsByAspectRatio(@NonNull Rational aspectRatio,
+    @NonNull
+    static List<Size> filterResolutionsByAspectRatio(@NonNull Rational aspectRatio,
             @NonNull List<Size> resolutionsToFilter) {
         List<Size> result = new ArrayList<>();
         for (Size resolution : resolutionsToFilter) {
@@ -680,8 +700,9 @@ public class ResolutionsMerger {
      * <p>The order of the {@code parentSizes} will be preserved in the resulting list.
      */
     @VisibleForTesting
-    static @NonNull List<Size> filterOutParentSizeThatIsTooSmall(
-            @NonNull Collection<Size> childSizes, @NonNull List<Size> parentSizes) {
+    @NonNull
+    static List<Size> filterOutParentSizeThatIsTooSmall(@NonNull Collection<Size> childSizes,
+            @NonNull List<Size> parentSizes) {
         if (childSizes.isEmpty() || parentSizes.isEmpty()) {
             return new ArrayList<>();
         }
@@ -756,7 +777,8 @@ public class ResolutionsMerger {
      * <p>The order of the {@code parentSizes} will be preserved in the resulting list.
      */
     @VisibleForTesting
-    static @NonNull List<Size> getParentSizesThatAreTooLarge(@NonNull Collection<Size> childSizes,
+    @NonNull
+    static List<Size> getParentSizesThatAreTooLarge(@NonNull Collection<Size> childSizes,
             @NonNull List<Size> parentSizes) {
         if (childSizes.isEmpty() || parentSizes.isEmpty()) {
             return new ArrayList<>();
@@ -803,7 +825,8 @@ public class ResolutionsMerger {
                 || childSize.getWidth() > parentSize.getWidth();
     }
 
-    private static @NonNull Rational toRationalWithMod16Considered(@NonNull Size size) {
+    @NonNull
+    private static Rational toRationalWithMod16Considered(@NonNull Size size) {
         // For 4:3 and 16:9, use hasMatchingAspectRatio to take "mod 16 calculation" into
         // consideration. For example, a standard 16:9 supported size is 1920x1080. It may become
         // 1920x1088 on some devices because 1088 is multiple of 16.
@@ -816,7 +839,8 @@ public class ResolutionsMerger {
         }
     }
 
-    private static @NonNull Rational toRational(@NonNull Size size) {
+    @NonNull
+    private static Rational toRational(@NonNull Size size) {
         return new Rational(size.getWidth(), size.getHeight());
     }
 
@@ -831,7 +855,8 @@ public class ResolutionsMerger {
 
     private static class CompareAspectRatioByOverlappingAreaToReference implements
             Comparator<Rational> {
-        private final @NonNull Rational mReferenceAspectRatio;
+        @NonNull
+        private final Rational mReferenceAspectRatio;
         private final boolean mReverse;
 
         /** Creates a comparator which can reverse the total ordering. */

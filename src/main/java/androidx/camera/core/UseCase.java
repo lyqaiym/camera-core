@@ -42,6 +42,8 @@ import android.view.Surface;
 import androidx.annotation.CallSuper;
 import androidx.annotation.GuardedBy;
 import androidx.annotation.IntRange;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 import androidx.annotation.RestrictTo.Scope;
 import androidx.camera.core.impl.CameraControlInternal;
@@ -57,14 +59,10 @@ import androidx.camera.core.impl.StreamSpec;
 import androidx.camera.core.impl.UseCaseConfig;
 import androidx.camera.core.impl.UseCaseConfigFactory;
 import androidx.camera.core.internal.TargetConfig;
-import androidx.camera.core.internal.compat.quirk.AeFpsRangeQuirk;
 import androidx.camera.core.internal.utils.UseCaseConfigUtil;
 import androidx.camera.core.resolutionselector.ResolutionSelector;
 import androidx.camera.core.streamsharing.StreamSharing;
 import androidx.core.util.Preconditions;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -102,12 +100,14 @@ public abstract class UseCase {
     private State mState = State.INACTIVE;
 
     /** Extended config, applied on top of the app defined Config (mUseCaseConfig). */
-    private @Nullable UseCaseConfig<?> mExtendedConfig;
+    @Nullable
+    private UseCaseConfig<?> mExtendedConfig;
 
     /**
      * Store the app defined {@link UseCaseConfig} used to create the use case.
      */
-    private @NonNull UseCaseConfig<?> mUseCaseConfig;
+    @NonNull
+    private UseCaseConfig<?> mUseCaseConfig;
 
     /**
      * The currently used Config.
@@ -115,7 +115,8 @@ public abstract class UseCase {
      * <p> This is the combination of the extended Config, app provided Config, and camera
      * implementation Config (with decreasing priority).
      */
-    private @NonNull UseCaseConfig<?> mCurrentConfig;
+    @NonNull
+    private UseCaseConfig<?> mCurrentConfig;
 
     ////////////////////////////////////////////////////////////////////////////////////////////
     // [UseCase attached constant] - Is only valid when the UseCase is attached to a camera.
@@ -130,38 +131,45 @@ public abstract class UseCase {
      * The camera implementation provided Config. Its options has lowest priority and will be
      * overwritten by any app defined or extended configs.
      */
-    private @Nullable UseCaseConfig<?> mCameraConfig;
+    @Nullable
+    private UseCaseConfig<?> mCameraConfig;
 
     /**
      * The crop rect calculated at the time of binding based on {@link ViewPort}.
      */
-    private @Nullable Rect mViewPortCropRect;
+    @Nullable
+    private Rect mViewPortCropRect;
 
     /**
      * The sensor to image buffer transform matrix.
      */
-    private @NonNull Matrix mSensorToBufferTransformMatrix = new Matrix();
+    @NonNull
+    private Matrix mSensorToBufferTransformMatrix = new Matrix();
 
     @GuardedBy("mCameraLock")
     private CameraInternal mCamera;
 
     @GuardedBy("mCameraLock")
-    private @Nullable CameraInternal mSecondaryCamera;
+    @Nullable
+    private CameraInternal mSecondaryCamera;
 
-    private @Nullable CameraEffect mEffect;
+    @Nullable
+    private CameraEffect mEffect;
 
-    private @Nullable String mPhysicalCameraId;
+    @Nullable
+    private String mPhysicalCameraId;
 
     ////////////////////////////////////////////////////////////////////////////////////////////
     // [UseCase attached dynamic] - Can change but is only available when the UseCase is attached.
     ////////////////////////////////////////////////////////////////////////////////////////////
 
     // The currently attached session config
-    private @NonNull SessionConfig mAttachedSessionConfig =
-            SessionConfig.defaultEmptySessionConfig();
+    @NonNull
+    private SessionConfig mAttachedSessionConfig = SessionConfig.defaultEmptySessionConfig();
 
     // The currently attached session config for secondary camera in dual camera case
-    private @NonNull SessionConfig mAttachedSecondarySessionConfig =
+    @NonNull
+    private SessionConfig mAttachedSecondarySessionConfig =
             SessionConfig.defaultEmptySessionConfig();
 
     /**
@@ -183,7 +191,8 @@ public abstract class UseCase {
      * @return The UseCaseConfig or null if there is no default Config.
      */
     @RestrictTo(Scope.LIBRARY_GROUP)
-    public abstract @Nullable UseCaseConfig<?> getDefaultConfig(boolean applyDefaultConfig,
+    @Nullable
+    public abstract UseCaseConfig<?> getDefaultConfig(boolean applyDefaultConfig,
             @NonNull UseCaseConfigFactory factory);
 
     /**
@@ -192,8 +201,8 @@ public abstract class UseCase {
      * @param config the Config to initialize the builder
      */
     @RestrictTo(Scope.LIBRARY_GROUP)
-    public abstract UseCaseConfig.@NonNull Builder<?, ?, ?> getUseCaseConfigBuilder(
-            @NonNull Config config);
+    @NonNull
+    public abstract UseCaseConfig.Builder<?, ?, ?> getUseCaseConfigBuilder(@NonNull Config config);
 
     /**
      * Create a merged {@link UseCaseConfig} from the UseCase, camera, and an extended config.
@@ -206,7 +215,8 @@ public abstract class UseCase {
      *                                  not be resolved
      */
     @RestrictTo(Scope.LIBRARY_GROUP)
-    public @NonNull UseCaseConfig<?> mergeConfigs(
+    @NonNull
+    public UseCaseConfig<?> mergeConfigs(
             @NonNull CameraInfoInternal cameraInfo,
             @Nullable UseCaseConfig<?> extendedConfig,
             @Nullable UseCaseConfig<?> cameraDefaultConfig) {
@@ -293,8 +303,9 @@ public abstract class UseCase {
      *                                  not be resolved
      */
     @RestrictTo(Scope.LIBRARY_GROUP)
-    protected @NonNull UseCaseConfig<?> onMergeConfig(@NonNull CameraInfoInternal cameraInfo,
-            UseCaseConfig.@NonNull Builder<?, ?, ?> builder) {
+    @NonNull
+    protected UseCaseConfig<?> onMergeConfig(@NonNull CameraInfoInternal cameraInfo,
+            @NonNull UseCaseConfig.Builder<?, ?, ?> builder) {
         return builder.getUseCaseConfig();
     }
 
@@ -369,7 +380,8 @@ public abstract class UseCase {
     }
 
     @RestrictTo(Scope.LIBRARY_GROUP)
-    public @Nullable String getPhysicalCameraId() {
+    @Nullable
+    public String getPhysicalCameraId() {
         return mPhysicalCameraId;
     }
 
@@ -424,8 +436,9 @@ public abstract class UseCase {
      *
      * @return The target frame rate.
      */
+    @NonNull
     @RestrictTo(Scope.LIBRARY_GROUP)
-    protected @NonNull Range<Integer> getTargetFrameRateInternal() {
+    protected Range<Integer> getTargetFrameRateInternal() {
         return mCurrentConfig.getTargetFrameRate(FRAME_RATE_RANGE_UNSPECIFIED);
     }
 
@@ -551,7 +564,8 @@ public abstract class UseCase {
      *
      */
     @RestrictTo(Scope.LIBRARY_GROUP)
-    public @NonNull SessionConfig getSessionConfig() {
+    @NonNull
+    public SessionConfig getSessionConfig() {
         return mAttachedSessionConfig;
     }
 
@@ -560,7 +574,8 @@ public abstract class UseCase {
      *
      */
     @RestrictTo(Scope.LIBRARY_GROUP)
-    public @NonNull SessionConfig getSecondarySessionConfig() {
+    @NonNull
+    public SessionConfig getSecondarySessionConfig() {
         return mAttachedSecondarySessionConfig;
     }
 
@@ -637,7 +652,8 @@ public abstract class UseCase {
      *
      */
     @RestrictTo(Scope.LIBRARY_GROUP)
-    protected @NonNull String getCameraId() {
+    @NonNull
+    protected String getCameraId() {
         return Preconditions.checkNotNull(getCamera(),
                 "No camera attached to use case: " + this).getCameraInfoInternal().getCameraId();
     }
@@ -648,7 +664,8 @@ public abstract class UseCase {
      *
      */
     @RestrictTo(Scope.LIBRARY_GROUP)
-    protected @Nullable String getSecondaryCameraId() {
+    @Nullable
+    protected String getSecondaryCameraId() {
         return getSecondaryCamera() == null ? null : getSecondaryCamera()
                 .getCameraInfoInternal().getCameraId();
     }
@@ -666,7 +683,8 @@ public abstract class UseCase {
     }
 
     @RestrictTo(Scope.LIBRARY_GROUP)
-    public @NonNull String getName() {
+    @NonNull
+    public String getName() {
         return Objects.requireNonNull(
                 mCurrentConfig.getTargetName("<UnknownUseCase-" + hashCode() + ">"));
     }
@@ -675,7 +693,8 @@ public abstract class UseCase {
      * Retrieves the configuration set by applications.
      */
     @RestrictTo(Scope.LIBRARY_GROUP)
-    protected @NonNull UseCaseConfig<?> getAppConfig() {
+    @NonNull
+    protected UseCaseConfig<?> getAppConfig() {
         return mUseCaseConfig;
     }
 
@@ -685,7 +704,8 @@ public abstract class UseCase {
      * @return the configuration used by this use case.
      */
     @RestrictTo(Scope.LIBRARY_GROUP)
-    public @NonNull UseCaseConfig<?> getCurrentConfig() {
+    @NonNull
+    public UseCaseConfig<?> getCurrentConfig() {
         return mCurrentConfig;
     }
 
@@ -694,7 +714,8 @@ public abstract class UseCase {
      *
      */
     @RestrictTo(Scope.LIBRARY_GROUP)
-    public @Nullable CameraInternal getCamera() {
+    @Nullable
+    public CameraInternal getCamera() {
         synchronized (mCameraLock) {
             return mCamera;
         }
@@ -705,7 +726,8 @@ public abstract class UseCase {
      *
      */
     @RestrictTo(Scope.LIBRARY_GROUP)
-    public @Nullable CameraInternal getSecondaryCamera() {
+    @Nullable
+    public CameraInternal getSecondaryCamera() {
         synchronized (mCameraLock) {
             return mSecondaryCamera;
         }
@@ -717,7 +739,8 @@ public abstract class UseCase {
      * @return the currently attached surface resolution for the given camera id.
      */
     @RestrictTo(Scope.LIBRARY_GROUP)
-    public @Nullable Size getAttachedSurfaceResolution() {
+    @Nullable
+    public Size getAttachedSurfaceResolution() {
         return mAttachedStreamSpec != null ? mAttachedStreamSpec.getResolution() : null;
     }
 
@@ -727,7 +750,8 @@ public abstract class UseCase {
      * @return the currently attached stream specification.
      */
     @RestrictTo(Scope.LIBRARY_GROUP)
-    public @Nullable StreamSpec getAttachedStreamSpec() {
+    @Nullable
+    public StreamSpec getAttachedStreamSpec() {
         return mAttachedStreamSpec;
     }
 
@@ -758,7 +782,8 @@ public abstract class UseCase {
      * attach to the camera device.
      */
     @RestrictTo(Scope.LIBRARY_GROUP)
-    protected @NonNull StreamSpec onSuggestedStreamSpecUpdated(
+    @NonNull
+    protected StreamSpec onSuggestedStreamSpecUpdated(
             @NonNull StreamSpec primaryStreamSpec,
             @Nullable StreamSpec secondaryStreamSpec) {
         return primaryStreamSpec;
@@ -782,8 +807,8 @@ public abstract class UseCase {
      * @param config The new implementationOptions for the stream specification.
      */
     @RestrictTo(Scope.LIBRARY_GROUP)
-    protected @NonNull StreamSpec onSuggestedStreamSpecImplementationOptionsUpdated(
-            @NonNull Config config) {
+    @NonNull
+    protected StreamSpec onSuggestedStreamSpecImplementationOptionsUpdated(@NonNull Config config) {
         if (mAttachedStreamSpec == null) {
             throw new UnsupportedOperationException("Attempt to update the implementation options "
                     + "for a use case without attached stream specifications.");
@@ -941,7 +966,8 @@ public abstract class UseCase {
      *
      */
     @RestrictTo(Scope.LIBRARY_GROUP)
-    protected @NonNull CameraControlInternal getCameraControl() {
+    @NonNull
+    protected CameraControlInternal getCameraControl() {
         synchronized (mCameraLock) {
             if (mCamera == null) {
                 return CameraControlInternal.DEFAULT_EMPTY_INSTANCE;
@@ -976,7 +1002,8 @@ public abstract class UseCase {
      *
      */
     @RestrictTo(Scope.LIBRARY_GROUP)
-    public @Nullable CameraEffect getEffect() {
+    @Nullable
+    public CameraEffect getEffect() {
         return mEffect;
     }
 
@@ -985,7 +1012,8 @@ public abstract class UseCase {
      *
      */
     @RestrictTo(Scope.LIBRARY_GROUP)
-    public @Nullable Rect getViewPortCropRect() {
+    @Nullable
+    public Rect getViewPortCropRect() {
         return mViewPortCropRect;
     }
 
@@ -1004,7 +1032,8 @@ public abstract class UseCase {
      *
      */
     @RestrictTo(Scope.LIBRARY_GROUP)
-    public @NonNull Matrix getSensorToBufferTransformMatrix() {
+    @NonNull
+    public Matrix getSensorToBufferTransformMatrix() {
         return mSensorToBufferTransformMatrix;
     }
 
@@ -1027,7 +1056,8 @@ public abstract class UseCase {
      *
      */
     @RestrictTo(Scope.LIBRARY_GROUP)
-    protected @Nullable ResolutionInfo getResolutionInfoInternal() {
+    @Nullable
+    protected ResolutionInfo getResolutionInfoInternal() {
         CameraInternal camera = getCamera();
         Size resolution = getAttachedSurfaceResolution();
 
@@ -1066,8 +1096,9 @@ public abstract class UseCase {
      * default, this method returns an empty set.
      *
      */
+    @NonNull
     @RestrictTo(Scope.LIBRARY_GROUP)
-    protected @NonNull Set<Integer> getSupportedEffectTargets() {
+    protected Set<Integer> getSupportedEffectTargets() {
         return Collections.emptySet();
     }
 
@@ -1084,34 +1115,6 @@ public abstract class UseCase {
             }
         }
         return false;
-    }
-
-    /**
-     * Applies the AE fps range to the session config builder according to the stream spec and
-     * quirk values.
-     */
-    @RestrictTo(Scope.LIBRARY_GROUP)
-    protected void applyExpectedFrameRateRange(SessionConfig.@NonNull Builder sessionConfigBuilder,
-            @NonNull StreamSpec streamSpec) {
-        // Directly applies the apps' setting if the value is not FRAME_RATE_RANGE_UNSPECIFIED
-        if (!FRAME_RATE_RANGE_UNSPECIFIED.equals(streamSpec.getExpectedFrameRateRange())) {
-            sessionConfigBuilder.setExpectedFrameRateRange(streamSpec.getExpectedFrameRateRange());
-            return;
-        }
-
-        synchronized (mCameraLock) {
-            CameraInfoInternal cameraInfoInternal = Preconditions.checkNotNull(
-                    mCamera).getCameraInfoInternal();
-            List<AeFpsRangeQuirk> aeFpsRangeQuirks = cameraInfoInternal.getCameraQuirks().getAll(
-                    AeFpsRangeQuirk.class);
-            Preconditions.checkArgument(aeFpsRangeQuirks.size() <= 1,
-                    "There should not have more than one AeFpsRangeQuirk.");
-
-            if (!aeFpsRangeQuirks.isEmpty()) {
-                sessionConfigBuilder.setExpectedFrameRateRange(
-                        aeFpsRangeQuirks.get(0).getTargetAeFpsRange());
-            }
-        }
     }
 
     enum State {

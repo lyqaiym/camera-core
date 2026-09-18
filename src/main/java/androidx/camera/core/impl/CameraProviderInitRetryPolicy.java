@@ -18,11 +18,10 @@ package androidx.camera.core.impl;
 
 import static androidx.camera.core.impl.CameraValidator.CameraIdListIncorrectException;
 
+import androidx.annotation.NonNull;
 import androidx.camera.core.ExperimentalRetryPolicy;
 import androidx.camera.core.Logger;
 import androidx.camera.core.RetryPolicy;
-
-import org.jspecify.annotations.NonNull;
 
 /**
  * Basic retry policy that automatically retries most failures with a standard delay.
@@ -38,9 +37,9 @@ public final class CameraProviderInitRetryPolicy implements RetryPolicyInternal 
 
     public CameraProviderInitRetryPolicy(long timeoutInMillis) {
         mDelegatePolicy = new TimeoutRetryPolicy(timeoutInMillis, new RetryPolicy() {
+            @NonNull
             @Override
-            public @NonNull RetryConfig onRetryDecisionRequested(
-                    @NonNull ExecutionState executionState) {
+            public RetryConfig onRetryDecisionRequested(@NonNull ExecutionState executionState) {
                 if (executionState.getStatus() == ExecutionState.STATUS_CONFIGURATION_FAIL) {
                     return RetryConfig.NOT_RETRY;
                 }
@@ -55,8 +54,9 @@ public final class CameraProviderInitRetryPolicy implements RetryPolicyInternal 
         });
     }
 
+    @NonNull
     @Override
-    public @NonNull RetryConfig onRetryDecisionRequested(@NonNull ExecutionState executionState) {
+    public RetryConfig onRetryDecisionRequested(@NonNull ExecutionState executionState) {
         return mDelegatePolicy.onRetryDecisionRequested(executionState);
     }
 
@@ -65,8 +65,9 @@ public final class CameraProviderInitRetryPolicy implements RetryPolicyInternal 
         return mDelegatePolicy.getTimeoutInMillis();
     }
 
+    @NonNull
     @Override
-    public @NonNull RetryPolicy copy(long timeoutInMillis) {
+    public RetryPolicy copy(long timeoutInMillis) {
         return new CameraProviderInitRetryPolicy(timeoutInMillis);
     }
 
@@ -94,9 +95,9 @@ public final class CameraProviderInitRetryPolicy implements RetryPolicyInternal 
             mBasePolicy = new CameraProviderInitRetryPolicy(timeoutInMillis);
         }
 
+        @NonNull
         @Override
-        public @NonNull RetryConfig onRetryDecisionRequested(
-                @NonNull ExecutionState executionState) {
+        public RetryConfig onRetryDecisionRequested(@NonNull ExecutionState executionState) {
             if (!mBasePolicy.onRetryDecisionRequested(executionState).shouldRetry()) {
                 Throwable cause = executionState.getCause();
                 if (cause instanceof CameraIdListIncorrectException) {
@@ -120,8 +121,9 @@ public final class CameraProviderInitRetryPolicy implements RetryPolicyInternal 
             return mBasePolicy.getTimeoutInMillis();
         }
 
+        @NonNull
         @Override
-        public @NonNull RetryPolicy copy(long timeoutInMillis) {
+        public RetryPolicy copy(long timeoutInMillis) {
             return new Legacy(timeoutInMillis);
         }
     }

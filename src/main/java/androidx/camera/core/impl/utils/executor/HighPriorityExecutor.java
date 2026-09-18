@@ -16,9 +16,8 @@
 
 package androidx.camera.core.impl.utils.executor;
 
+import androidx.annotation.NonNull;
 import androidx.camera.core.CameraXThreads;
-
-import org.jspecify.annotations.NonNull;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;

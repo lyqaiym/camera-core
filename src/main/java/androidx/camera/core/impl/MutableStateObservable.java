@@ -16,8 +16,8 @@
 
 package androidx.camera.core.impl;
 
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 /**
  * A {@link StateObservable} whose state can be set.
@@ -37,8 +37,8 @@ public class MutableStateObservable<T> extends StateObservable<T> {
      * @param <T>          The state type
      * @return A mutable state observable initialized with the given initial state.
      */
-    public static <T> @NonNull MutableStateObservable<T> withInitialState(
-            @Nullable T initialState) {
+    @NonNull
+    public static <T> MutableStateObservable<T> withInitialState(@Nullable T initialState) {
         return new MutableStateObservable<>(initialState, false);
     }
 
@@ -51,8 +51,8 @@ public class MutableStateObservable<T> extends StateObservable<T> {
      * @return A mutable state observable initialized in an error state containing the provided
      * {@link Throwable}.
      */
-    public static <T> @NonNull MutableStateObservable<T> withInitialError(
-            @NonNull Throwable initialError) {
+    @NonNull
+    public static <T> MutableStateObservable<T> withInitialError(@NonNull Throwable initialError) {
         return new MutableStateObservable<>(initialError, true);
     }
 

@@ -23,13 +23,12 @@ import android.graphics.ImageFormat;
 import android.view.Display;
 
 import androidx.annotation.IntDef;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 import androidx.camera.core.processing.SurfaceProcessorInternal;
 import androidx.camera.core.processing.SurfaceProcessorWithExecutor;
 import androidx.core.util.Consumer;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -211,10 +210,14 @@ public abstract class CameraEffect {
     private final int mOutputOption;
     @Transformations
     private final int mTransformation;
-    private final @NonNull Executor mExecutor;
-    private final @Nullable SurfaceProcessor mSurfaceProcessor;
-    private final @Nullable ImageProcessor mImageProcessor;
-    private final @NonNull Consumer<Throwable> mErrorListener;
+    @NonNull
+    private final Executor mExecutor;
+    @Nullable
+    private final SurfaceProcessor mSurfaceProcessor;
+    @Nullable
+    private final ImageProcessor mImageProcessor;
+    @NonNull
+    private final Consumer<Throwable> mErrorListener;
 
     /**
      * @param targets        the target {@link UseCase} to which this effect should be applied.
@@ -362,7 +365,8 @@ public abstract class CameraEffect {
      *
      * <p>This method returns the value set in the constructor.
      */
-    public @NonNull Executor getExecutor() {
+    @NonNull
+    public Executor getExecutor() {
         return mExecutor;
     }
 
@@ -372,22 +376,25 @@ public abstract class CameraEffect {
      * <p>This method returns the value set in the constructor. The {@link Throwable} will be the
      * error thrown by this {@link CameraEffect}. For example, {@link ProcessingException}.
      */
-    public @NonNull Consumer<Throwable> getErrorListener() {
+    @NonNull
+    public Consumer<Throwable> getErrorListener() {
         return mErrorListener;
     }
 
     /**
      * Gets the {@link SurfaceProcessor} associated with this effect.
      */
-    public @Nullable SurfaceProcessor getSurfaceProcessor() {
+    @Nullable
+    public SurfaceProcessor getSurfaceProcessor() {
         return mSurfaceProcessor;
     }
 
     /**
      * Gets the {@link ImageProcessor} associated with this effect.
      */
+    @Nullable
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
-    public @Nullable ImageProcessor getImageProcessor() {
+    public ImageProcessor getImageProcessor() {
         return mImageProcessor;
     }
 
@@ -400,7 +407,8 @@ public abstract class CameraEffect {
      * {@link SurfaceProcessor}.
      */
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
-    public @NonNull SurfaceProcessorInternal createSurfaceProcessorInternal() {
+    @NonNull
+    public SurfaceProcessorInternal createSurfaceProcessorInternal() {
         return new SurfaceProcessorWithExecutor(this);
     }
 }

@@ -19,11 +19,10 @@ package androidx.camera.core.imagecapture;
 import android.graphics.Bitmap;
 
 import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
 import androidx.camera.core.ImageCapture;
 import androidx.camera.core.ImageCaptureException;
 import androidx.camera.core.ImageProxy;
-
-import org.jspecify.annotations.NonNull;
 
 /**
  * A callback for a {@link TakePictureRequest}.
@@ -62,7 +61,7 @@ interface TakePictureCallback {
      * <p>After invoked, the {@link TakePictureCallback} will never be invoked again.
      */
     @MainThread
-    void onFinalResult(ImageCapture.@NonNull OutputFileResults outputFileResults);
+    void onFinalResult(@NonNull ImageCapture.OutputFileResults outputFileResults);
 
     /**
      * Invoked when the final in-memory result is ready.

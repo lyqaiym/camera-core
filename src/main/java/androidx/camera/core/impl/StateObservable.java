@@ -17,14 +17,13 @@
 package androidx.camera.core.impl;
 
 import androidx.annotation.GuardedBy;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.camera.core.impl.utils.futures.Futures;
 import androidx.core.util.Preconditions;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.util.concurrent.ListenableFuture;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -137,8 +136,9 @@ public abstract class StateObservable<T> implements Observable<T> {
      * @return A future which will contain the latest value or an error.
      */
     @SuppressWarnings("unchecked")
+    @NonNull
     @Override
-    public @NonNull ListenableFuture<T> fetchData() {
+    public ListenableFuture<T> fetchData() {
         Object state = mState.get();
         if (state instanceof ErrorWrapper) {
             return Futures.immediateFailedFuture(((ErrorWrapper) state).getError());
@@ -184,7 +184,7 @@ public abstract class StateObservable<T> implements Observable<T> {
     }
 
     @GuardedBy("mLock")
-    private void removeObserverLocked(Observable.@NonNull Observer<? super T> observer) {
+    private void removeObserverLocked(@NonNull Observable.Observer<? super T> observer) {
         ObserverWrapper<T> wrapper = mWrapperMap.remove(observer);
         if (wrapper != null) {
             wrapper.close();
@@ -291,10 +291,12 @@ public abstract class StateObservable<T> implements Observable<T> {
 
     @AutoValue
     abstract static class ErrorWrapper {
-        static @NonNull ErrorWrapper wrap(@NonNull Throwable error) {
+        @NonNull
+        static ErrorWrapper wrap(@NonNull Throwable error) {
             return new AutoValue_StateObservable_ErrorWrapper(error);
         }
 
-        public abstract @NonNull Throwable getError();
+        @NonNull
+        public abstract Throwable getError();
     }
 }

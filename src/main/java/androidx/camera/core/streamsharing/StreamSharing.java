@@ -39,11 +39,13 @@ import android.util.Size;
 
 import androidx.annotation.IntRange;
 import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 import androidx.annotation.VisibleForTesting;
 import androidx.camera.core.CameraEffect;
-import androidx.camera.core.CompositionSettings;
 import androidx.camera.core.ImageCapture;
+import androidx.camera.core.LayoutSettings;
 import androidx.camera.core.MirrorMode;
 import androidx.camera.core.UseCase;
 import androidx.camera.core.impl.CameraInfoInternal;
@@ -70,9 +72,6 @@ import androidx.camera.core.processing.util.OutConfig;
 
 import com.google.common.util.concurrent.ListenableFuture;
 
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -85,34 +84,46 @@ import java.util.Set;
  */
 public class StreamSharing extends UseCase {
     private static final String TAG = "StreamSharing";
-    private final @NonNull StreamSharingConfig mDefaultConfig;
+    @NonNull
+    private final StreamSharingConfig mDefaultConfig;
 
-    private final @NonNull VirtualCameraAdapter mVirtualCameraAdapter;
-    // The composition settings of primary camera in dual camera case.
-    private final @NonNull CompositionSettings mCompositionSettings;
-    // The composition settings of secondary camera in dual camera case.
-    private final @NonNull CompositionSettings mSecondaryCompositionSettings;
+    @NonNull
+    private final VirtualCameraAdapter mVirtualCameraAdapter;
+    // The layout settings of primary camera in dual camera case.
+    @NonNull
+    private final LayoutSettings mLayoutSettings;
+    // The layout settings of secondary camera in dual camera case.
+    @NonNull
+    private final LayoutSettings mSecondaryLayoutSettings;
     // Node that applies effect to the input.
-    private @Nullable SurfaceProcessorNode mEffectNode;
+    @Nullable
+    private SurfaceProcessorNode mEffectNode;
     // Node that shares a single stream to multiple UseCases.
-    private @Nullable SurfaceProcessorNode mSharingNode;
+    @Nullable
+    private SurfaceProcessorNode mSharingNode;
     // Node that shares dual streams to multiple UseCases.
-    private @Nullable DualSurfaceProcessorNode mDualSharingNode;
+    @Nullable
+    private DualSurfaceProcessorNode mDualSharingNode;
     // The input edge that connects to the camera.
-    private @Nullable SurfaceEdge mCameraEdge;
+    @Nullable
+    private SurfaceEdge mCameraEdge;
     // The input edge that connects to the secondary camera in dual camera case.
-    private @Nullable SurfaceEdge mSecondaryCameraEdge;
+    @Nullable
+    private SurfaceEdge mSecondaryCameraEdge;
     // The input edge of the sharing node.
-    private @Nullable SurfaceEdge mSharingInputEdge;
+    @Nullable
+    private SurfaceEdge mSharingInputEdge;
     // The input edge of the secondary sharing node in dual camera case.
-    private @Nullable SurfaceEdge mSecondarySharingInputEdge;
+    @Nullable
+    private SurfaceEdge mSecondarySharingInputEdge;
 
     @SuppressWarnings("WeakerAccess") // Synthetic access
     SessionConfig.Builder mSessionConfigBuilder;
     @SuppressWarnings("WeakerAccess") // Synthetic access
     SessionConfig.Builder mSecondarySessionConfigBuilder;
 
-    private SessionConfig.@Nullable CloseableErrorListener mCloseableErrorListener;
+    @Nullable
+    private SessionConfig.CloseableErrorListener mCloseableErrorListener;
 
     private static StreamSharingConfig getDefaultConfig(Set<UseCase> children) {
         MutableConfig mutableConfig = new StreamSharingBuilder().getMutableConfig();
@@ -138,14 +149,14 @@ public class StreamSharing extends UseCase {
      */
     public StreamSharing(@NonNull CameraInternal camera,
             @Nullable CameraInternal secondaryCamera,
-            @NonNull CompositionSettings compositionSettings,
-            @NonNull CompositionSettings secondaryCompositionSettings,
+            @NonNull LayoutSettings layoutSettings,
+            @NonNull LayoutSettings secondaryLayoutSettings,
             @NonNull Set<UseCase> children,
             @NonNull UseCaseConfigFactory useCaseConfigFactory) {
         super(getDefaultConfig(children));
         mDefaultConfig = getDefaultConfig(children);
-        mCompositionSettings = compositionSettings;
-        mSecondaryCompositionSettings = secondaryCompositionSettings;
+        mLayoutSettings = layoutSettings;
+        mSecondaryLayoutSettings = secondaryLayoutSettings;
         mVirtualCameraAdapter = new VirtualCameraAdapter(
                 camera, secondaryCamera, children, useCaseConfigFactory,
                 (jpegQuality, rotationDegrees) -> {
@@ -160,8 +171,9 @@ public class StreamSharing extends UseCase {
                 });
     }
 
+    @Nullable
     @Override
-    public @Nullable UseCaseConfig<?> getDefaultConfig(boolean applyDefaultConfig,
+    public UseCaseConfig<?> getDefaultConfig(boolean applyDefaultConfig,
             @NonNull UseCaseConfigFactory factory) {
         // The shared stream optimizes for VideoCapture.
         Config captureConfig = factory.getConfig(
@@ -175,20 +187,23 @@ public class StreamSharing extends UseCase {
                 getUseCaseConfigBuilder(captureConfig).getUseCaseConfig();
     }
 
+    @NonNull
     @Override
-    public UseCaseConfig.@NonNull Builder<?, ?, ?> getUseCaseConfigBuilder(@NonNull Config config) {
+    public UseCaseConfig.Builder<?, ?, ?> getUseCaseConfigBuilder(@NonNull Config config) {
         return new StreamSharingBuilder(MutableOptionsBundle.from(config));
     }
 
+    @NonNull
     @Override
-    protected @NonNull UseCaseConfig<?> onMergeConfig(@NonNull CameraInfoInternal cameraInfo,
-            UseCaseConfig.@NonNull Builder<?, ?, ?> builder) {
+    protected UseCaseConfig<?> onMergeConfig(@NonNull CameraInfoInternal cameraInfo,
+            @NonNull UseCaseConfig.Builder<?, ?, ?> builder) {
         mVirtualCameraAdapter.mergeChildrenConfigs(builder.getMutableConfig());
         return builder.getUseCaseConfig();
     }
 
+    @NonNull
     @Override
-    protected @NonNull StreamSpec onSuggestedStreamSpecUpdated(
+    protected StreamSpec onSuggestedStreamSpecUpdated(
             @NonNull StreamSpec primaryStreamSpec,
             @Nullable StreamSpec secondaryStreamSpec) {
         updateSessionConfig(
@@ -203,10 +218,10 @@ public class StreamSharing extends UseCase {
     /**
      * {@inheritDoc}
      */
+    @NonNull
     @Override
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
-    protected @NonNull StreamSpec onSuggestedStreamSpecImplementationOptionsUpdated(
-            @NonNull Config config) {
+    protected StreamSpec onSuggestedStreamSpecImplementationOptionsUpdated(@NonNull Config config) {
         mSessionConfigBuilder.addImplementationOptions(config);
         updateSessionConfig(List.of(mSessionConfigBuilder.build()));
         return getAttachedStreamSpec().toBuilder().setImplementationOptions(config).build();
@@ -237,13 +252,8 @@ public class StreamSharing extends UseCase {
         mVirtualCameraAdapter.notifyStateDetached();
     }
 
-    @Override
-    public void onCameraControlReady() {
-        super.onCameraControlReady();
-        mVirtualCameraAdapter.notifyCameraControlReady();
-    }
-
-    public @NonNull Set<UseCase> getChildren() {
+    @NonNull
+    public Set<UseCase> getChildren() {
         return mVirtualCameraAdapter.getChildren();
     }
 
@@ -251,14 +261,16 @@ public class StreamSharing extends UseCase {
      * StreamSharing supports [PREVIEW, VIDEO_CAPTURE] or [PREVIEW, VIDEO_CAPTURE, IMAGE_CAPTURE].
      */
     @Override
-    public @NonNull Set<Integer> getSupportedEffectTargets() {
+    @NonNull
+    public Set<Integer> getSupportedEffectTargets() {
         Set<Integer> targets = new HashSet<>();
         targets.add(PREVIEW | VIDEO_CAPTURE);
         return targets;
     }
 
+    @NonNull
     @MainThread
-    private @NonNull List<SessionConfig> createPipelineAndUpdateChildrenSpecs(
+    private List<SessionConfig> createPipelineAndUpdateChildrenSpecs(
             @NonNull String cameraId,
             @Nullable String secondaryCameraId,
             @NonNull UseCaseConfig<?> config,
@@ -287,10 +299,7 @@ public class StreamSharing extends UseCase {
                 outputEdges.put(entry.getKey(), out.get(entry.getValue()));
             }
 
-            Map<UseCase, Size> selectedChildSizeMap = mVirtualCameraAdapter.getSelectedChildSizes(
-                    mSharingInputEdge, isViewportSet);
-
-            mVirtualCameraAdapter.setChildrenEdges(outputEdges, selectedChildSizeMap);
+            mVirtualCameraAdapter.setChildrenEdges(outputEdges);
 
             return List.of(mSessionConfigBuilder.build());
         } else {
@@ -307,8 +316,8 @@ public class StreamSharing extends UseCase {
                     getCamera(),
                     getSecondaryCamera(),
                     primaryStreamSpec, // use primary stream spec
-                    mCompositionSettings,
-                    mSecondaryCompositionSettings);
+                    mLayoutSettings,
+                    mSecondaryLayoutSettings);
             boolean isViewportSet = getViewPortCropRect() != null;
             Map<UseCase, DualOutConfig> outConfigMap =
                     mVirtualCameraAdapter.getChildrenOutConfigs(
@@ -326,11 +335,7 @@ public class StreamSharing extends UseCase {
             for (Map.Entry<UseCase, DualOutConfig> entry : outConfigMap.entrySet()) {
                 outputEdges.put(entry.getKey(), out.get(entry.getValue()));
             }
-
-            Map<UseCase, Size> primarySelectedChildSizes =
-                    mVirtualCameraAdapter.getSelectedChildSizes(mSharingInputEdge, isViewportSet);
-
-            mVirtualCameraAdapter.setChildrenEdges(outputEdges, primarySelectedChildSizes);
+            mVirtualCameraAdapter.setChildrenEdges(outputEdges);
 
             return List.of(mSessionConfigBuilder.build(),
                     mSecondarySessionConfigBuilder.build());
@@ -388,7 +393,8 @@ public class StreamSharing extends UseCase {
                 primaryStreamSpec, secondaryStreamSpec);
     }
 
-    private SessionConfig.@NonNull Builder createSessionConfigBuilder(
+    @NonNull
+    private SessionConfig.Builder createSessionConfigBuilder(
             @NonNull SurfaceEdge surfaceEdge,
             @NonNull UseCaseConfig<?> config,
             @NonNull StreamSpec streamSpec) {
@@ -408,14 +414,10 @@ public class StreamSharing extends UseCase {
         if (streamSpec.getImplementationOptions() != null) {
             builder.addImplementationOptions(streamSpec.getImplementationOptions());
         }
-        builder.setSessionType(streamSpec.getSessionType());
-        // Applies the AE fps range to the session config builder according to the stream spec and
-        // quirk values.
-        applyExpectedFrameRateRange(builder, streamSpec);
         return builder;
     }
 
-    private void propagateChildrenTemplate(SessionConfig.@NonNull Builder builder) {
+    private void propagateChildrenTemplate(@NonNull SessionConfig.Builder builder) {
         int targetTemplate = TEMPLATE_TYPE_NONE;
         for (UseCase child : getChildren()) {
             targetTemplate = getHigherPriorityTemplateType(targetTemplate, getChildTemplate(child));
@@ -435,7 +437,7 @@ public class StreamSharing extends UseCase {
      */
     private void propagateChildrenCamera2Interop(
             @NonNull Size resolution,
-            SessionConfig.@NonNull Builder builder) {
+            @NonNull SessionConfig.Builder builder) {
         for (UseCase useCase : getChildren()) {
             SessionConfig childConfig =
                     SessionConfig.Builder.createFrom(useCase.getCurrentConfig(), resolution)
@@ -452,7 +454,8 @@ public class StreamSharing extends UseCase {
     /**
      * Creates the input {@link SurfaceEdge} for {@link #mSharingNode}.
      */
-    private @NonNull SurfaceEdge getSharingInputEdge(@NonNull SurfaceEdge cameraEdge,
+    @NonNull
+    private SurfaceEdge getSharingInputEdge(@NonNull SurfaceEdge cameraEdge,
             @NonNull CameraInternal camera) {
         if (getEffect() == null) {
             // No effect. The input edge is the camera edge.
@@ -486,7 +489,8 @@ public class StreamSharing extends UseCase {
         return requireNonNull(out.get(outConfig));
     }
 
-    private @NonNull SurfaceProcessorNode getSharingNode(@NonNull CameraInternal camera,
+    @NonNull
+    private SurfaceProcessorNode getSharingNode(@NonNull CameraInternal camera,
             @NonNull StreamSpec streamSpec) {
         if (getEffect() != null
                 && getEffect().getOutputOption()
@@ -502,18 +506,19 @@ public class StreamSharing extends UseCase {
         }
     }
 
-    private @NonNull DualSurfaceProcessorNode getDualSharingNode(
+    @NonNull
+    private DualSurfaceProcessorNode getDualSharingNode(
             @NonNull CameraInternal primaryCamera,
             @NonNull CameraInternal secondaryCamera,
             @NonNull StreamSpec streamSpec,
-            @NonNull CompositionSettings primaryCompositionSettings,
-            @NonNull CompositionSettings secondaryCompositionSettings) {
+            @NonNull LayoutSettings primaryLayoutSettings,
+            @NonNull LayoutSettings secondaryLayoutSettings) {
         // TODO: handle EffectNode for dual camera case
         return new DualSurfaceProcessorNode(primaryCamera, secondaryCamera,
                 DualSurfaceProcessor.Factory.newInstance(
                         streamSpec.getDynamicRange(),
-                        primaryCompositionSettings,
-                        secondaryCompositionSettings));
+                        primaryLayoutSettings,
+                        secondaryLayoutSettings));
     }
 
     private int getRotationAppliedByEffect() {
@@ -557,7 +562,7 @@ public class StreamSharing extends UseCase {
     }
 
     private void addCameraErrorListener(
-            SessionConfig.@NonNull Builder sessionConfigBuilder,
+            @NonNull SessionConfig.Builder sessionConfigBuilder,
             @NonNull String cameraId,
             @Nullable String secondaryCameraId,
             @NonNull UseCaseConfig<?> config,
@@ -625,7 +630,8 @@ public class StreamSharing extends UseCase {
         }
     }
 
-    private @Nullable Rect getCropRect(@NonNull Size surfaceResolution) {
+    @Nullable
+    private Rect getCropRect(@NonNull Size surfaceResolution) {
         if (getViewPortCropRect() != null) {
             return getViewPortCropRect();
         }
@@ -640,23 +646,27 @@ public class StreamSharing extends UseCase {
         /**
          * Takes a snapshot of the current stream and write it to the children with JPEG Surface.
          */
-        @NonNull ListenableFuture<Void> jpegSnapshot(
+        @NonNull
+        ListenableFuture<Void> jpegSnapshot(
                 @IntRange(from = 0, to = 100) int jpegQuality,
                 @IntRange(from = 0, to = 359) int rotationDegrees);
     }
 
     @VisibleForTesting
-    @Nullable SurfaceEdge getCameraEdge() {
+    @Nullable
+    SurfaceEdge getCameraEdge() {
         return mCameraEdge;
     }
 
     @VisibleForTesting
-    @Nullable SurfaceProcessorNode getSharingNode() {
+    @Nullable
+    SurfaceProcessorNode getSharingNode() {
         return mSharingNode;
     }
 
     @VisibleForTesting
-    @NonNull VirtualCameraAdapter getVirtualCameraAdapter() {
+    @NonNull
+    VirtualCameraAdapter getVirtualCameraAdapter() {
         return mVirtualCameraAdapter;
     }
 
@@ -664,8 +674,8 @@ public class StreamSharing extends UseCase {
      * Gets the capture types of all the children use cases when use case is StreamSharing, or just
      * the capture type of the use case itself otherwise.
      */
-    public static @NonNull List<UseCaseConfigFactory.CaptureType> getCaptureTypes(
-            @NonNull UseCase useCase) {
+    @NonNull
+    public static List<UseCaseConfigFactory.CaptureType> getCaptureTypes(@NonNull UseCase useCase) {
         List<UseCaseConfigFactory.CaptureType> result = new ArrayList<>();
         if (isStreamSharing(useCase)) {
             for (UseCase child : ((StreamSharing) useCase).getChildren()) {
@@ -686,7 +696,8 @@ public class StreamSharing extends UseCase {
     }
 
     @VisibleForTesting
-    public @Nullable SurfaceEdge getSharingInputEdge() {
+    @Nullable
+    public SurfaceEdge getSharingInputEdge() {
         return mSharingInputEdge;
     }
 }

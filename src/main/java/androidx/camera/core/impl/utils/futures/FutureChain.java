@@ -18,14 +18,13 @@ package androidx.camera.core.impl.utils.futures;
 
 import static androidx.core.util.Preconditions.checkNotNull;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.arch.core.util.Function;
 import androidx.concurrent.futures.CallbackToFutureAdapter;
 import androidx.core.util.Preconditions;
 
 import com.google.common.util.concurrent.ListenableFuture;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -44,8 +43,10 @@ import java.util.concurrent.TimeoutException;
  *  @param <V>
  */
 public class FutureChain<V> implements ListenableFuture<V> {
-    private final @NonNull ListenableFuture<V> mDelegate;
-    CallbackToFutureAdapter.@Nullable Completer<V> mCompleter;
+    @NonNull
+    private final ListenableFuture<V> mDelegate;
+    @Nullable
+    CallbackToFutureAdapter.Completer<V> mCompleter;
 
     /**
      * Converts the given {@code ListenableFuture} to an equivalent {@code FutureChain}.
@@ -56,7 +57,8 @@ public class FutureChain<V> implements ListenableFuture<V> {
      *
      * @return directly if input a FutureChain or a ListenableFuture wrapped by FutureChain.
      */
-    public static <V> @NonNull FutureChain<V> from(@NonNull ListenableFuture<V> future) {
+    @NonNull
+    public static <V> FutureChain<V> from(@NonNull ListenableFuture<V> future) {
         return future instanceof FutureChain
                 ? (FutureChain<V>) future : new FutureChain<V>(future);
     }
@@ -72,7 +74,8 @@ public class FutureChain<V> implements ListenableFuture<V> {
      * @return A future that holds result of the function (if the input succeeded) or the
      * original input's failure (if not)
      */
-    public final <T> @NonNull FutureChain<T> transformAsync(
+    @NonNull
+    public final <T> FutureChain<T> transformAsync(
             @NonNull AsyncFunction<? super V, T> function, @NonNull Executor executor) {
         return (FutureChain<T>) Futures.transformAsync(this, function, executor);
     }
@@ -88,7 +91,8 @@ public class FutureChain<V> implements ListenableFuture<V> {
      * @param executor Executor to run the function in.
      * @return A future that holds result of the transformation.
      */
-    public final <T> @NonNull FutureChain<T> transform(@NonNull Function<? super V, T> function,
+    @NonNull
+    public final <T> FutureChain<T> transform(@NonNull Function<? super V, T> function,
             @NonNull Executor executor) {
         return (FutureChain<T>) Futures.transform(this, function, executor);
     }
@@ -115,7 +119,7 @@ public class FutureChain<V> implements ListenableFuture<V> {
                 new CallbackToFutureAdapter.Resolver<V>() {
                     @Override
                     public Object attachCompleter(
-                            CallbackToFutureAdapter.@NonNull Completer<V> completer) {
+                            @NonNull CallbackToFutureAdapter.Completer<V> completer) {
                         Preconditions.checkState(mCompleter == null,
                                 "The result can only set once!");
                         mCompleter = completer;
@@ -145,13 +149,15 @@ public class FutureChain<V> implements ListenableFuture<V> {
     }
 
 
+    @Nullable
     @Override
-    public @Nullable V get() throws InterruptedException, ExecutionException {
+    public V get() throws InterruptedException, ExecutionException {
         return mDelegate.get();
     }
 
+    @Nullable
     @Override
-    public @Nullable V get(long timeout, @NonNull TimeUnit unit)
+    public V get(long timeout, @NonNull TimeUnit unit)
             throws InterruptedException, ExecutionException, TimeoutException {
         return mDelegate.get(timeout, unit);
     }

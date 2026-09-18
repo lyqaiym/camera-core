@@ -18,14 +18,13 @@ package androidx.camera.core;
 
 import androidx.annotation.IntDef;
 import androidx.annotation.IntRange;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 import androidx.camera.core.impl.CameraProviderInitRetryPolicy;
 import androidx.camera.core.impl.RetryPolicyInternal;
 import androidx.camera.core.impl.TimeoutRetryPolicy;
 import androidx.core.util.Preconditions;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -101,7 +100,8 @@ public interface RetryPolicy {
      * A retry policy that prevents any retry attempts and
      * immediately halts the initialization upon encountering an error.
      */
-    @NonNull RetryPolicy NEVER = executionState -> RetryConfig.NOT_RETRY;
+    @NonNull
+    RetryPolicy NEVER = executionState -> RetryConfig.NOT_RETRY;
 
     /**
      * This retry policy increases initialization success by automatically retrying upon
@@ -117,7 +117,8 @@ public interface RetryPolicy {
      *     new RetryPolicy.Builder(RetryPolicy.DEFAULT).setTimeoutInMillis(10000L).build();
      * }</pre>
      */
-    @NonNull RetryPolicy DEFAULT = new CameraProviderInitRetryPolicy.Legacy(
+    @NonNull
+    RetryPolicy DEFAULT = new CameraProviderInitRetryPolicy.Legacy(
             getDefaultRetryTimeoutInMillis());
 
     /**
@@ -135,7 +136,8 @@ public interface RetryPolicy {
      *     RetryPolicy.RETRY_UNAVAILABLE_CAMERA).setTimeoutInMillis(10000L).build();
      * }</pre>
      */
-    @NonNull RetryPolicy RETRY_UNAVAILABLE_CAMERA =
+    @NonNull
+    RetryPolicy RETRY_UNAVAILABLE_CAMERA =
             new CameraProviderInitRetryPolicy(getDefaultRetryTimeoutInMillis());
 
     /**
@@ -156,7 +158,8 @@ public interface RetryPolicy {
      *                       initialization.
      * @return A RetryConfig indicating whether to retry, along with any associated delay.
      */
-    @NonNull RetryConfig onRetryDecisionRequested(@NonNull ExecutionState executionState);
+    @NonNull
+    RetryConfig onRetryDecisionRequested(@NonNull ExecutionState executionState);
 
     /**
      * Returns the maximum allowed retry duration in milliseconds. Initialization will
@@ -210,7 +213,8 @@ public interface RetryPolicy {
          *                        indicates no timeout.
          * @return {@code this} for method chaining.
          */
-        public @NonNull Builder setTimeoutInMillis(long timeoutInMillis) {
+        @NonNull
+        public Builder setTimeoutInMillis(long timeoutInMillis) {
             mTimeoutInMillis = timeoutInMillis;
             return this;
         }
@@ -220,7 +224,8 @@ public interface RetryPolicy {
          *
          * @return The new {@link RetryPolicy}.
          */
-        public @NonNull RetryPolicy build() {
+        @NonNull
+        public RetryPolicy build() {
             if (mBasePolicy instanceof RetryPolicyInternal) {
                 return ((RetryPolicyInternal) mBasePolicy).copy(mTimeoutInMillis);
             }
@@ -303,7 +308,8 @@ public interface RetryPolicy {
          *
          * @return The cause that occurred during the task execution, or null if there was no error.
          */
-        @Nullable Throwable getCause();
+        @Nullable
+        Throwable getCause();
 
         /**
          * Gets the total execution time of the initialization task in milliseconds.
@@ -331,7 +337,8 @@ public interface RetryPolicy {
         private static final long DEFAULT_DELAY_MILLIS = 500L;
 
         /** A RetryConfig indicating that no further retries should be attempted. */
-        public static final @NonNull RetryConfig NOT_RETRY = new RetryConfig(false, 0L);
+        @NonNull
+        public static final RetryConfig NOT_RETRY = new RetryConfig(false, 0L);
 
         /**
          * A RetryConfig indicating that the initialization should be retried after the default
@@ -339,7 +346,8 @@ public interface RetryPolicy {
          * sufficient time for typical device recovery processes, balancing retry efficiency
          * and minimizing user wait time.
          */
-        public static final @NonNull RetryConfig DEFAULT_DELAY_RETRY = new RetryConfig(true);
+        @NonNull
+        public static final RetryConfig DEFAULT_DELAY_RETRY = new RetryConfig(true);
 
         /**
          * A RetryConfig indicating that the initialization should be retried after a minimum
@@ -355,8 +363,8 @@ public interface RetryPolicy {
          * This approach balances quick retries with potential self-recovery, aiming for the
          * fastest possible camera restoration.
          */
-        public static final @NonNull RetryConfig MINI_DELAY_RETRY =
-                new RetryConfig(true, MINI_DELAY_MILLIS);
+        @NonNull
+        public static final RetryConfig MINI_DELAY_RETRY = new RetryConfig(true, MINI_DELAY_MILLIS);
 
         /**
          * A RetryConfig indicating that the initialization should be considered complete
@@ -365,8 +373,8 @@ public interface RetryPolicy {
          * initialization task for minor issues.
          */
         @RestrictTo(RestrictTo.Scope.LIBRARY)
-        public static @NonNull RetryConfig COMPLETE_WITHOUT_FAILURE =
-                new RetryConfig(false, 0, true);
+        @NonNull
+        public static RetryConfig COMPLETE_WITHOUT_FAILURE = new RetryConfig(false, 0, true);
 
         /**
          * Returns the recommended default delay to optimize retry attempts and camera recovery.
@@ -473,7 +481,8 @@ public interface RetryPolicy {
              *                     If false, initialization will not be retried.
              * @return {@code this} for method chaining.
              */
-            public @NonNull Builder setShouldRetry(boolean shouldRetry) {
+            @NonNull
+            public Builder setShouldRetry(boolean shouldRetry) {
                 mShouldRetry = shouldRetry;
                 return this;
             }
@@ -489,7 +498,8 @@ public interface RetryPolicy {
              * @param timeoutInMillis The delay in milliseconds.
              * @return {@code this} for method chaining.
              */
-            public @NonNull Builder setRetryDelayInMillis(
+            @NonNull
+            public Builder setRetryDelayInMillis(
                     @IntRange(from = 100, to = 2000) long timeoutInMillis) {
                 mTimeoutInMillis = timeoutInMillis;
                 return this;
@@ -500,7 +510,8 @@ public interface RetryPolicy {
              *
              * @return The configured RetryConfig.
              */
-            public @NonNull RetryConfig build() {
+            @NonNull
+            public RetryConfig build() {
                 return new RetryConfig(mShouldRetry, mTimeoutInMillis);
             }
         }

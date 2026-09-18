@@ -24,12 +24,11 @@ import android.util.Size;
 import android.view.Surface;
 
 import androidx.annotation.IntDef;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.camera.core.AspectRatio;
 import androidx.camera.core.MirrorMode;
 import androidx.camera.core.resolutionselector.ResolutionSelector;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -183,7 +182,8 @@ public interface ImageOutputConfig extends ReadableConfig {
      * @return The stored value or <code>valueIfMissing</code> if the value does not exist in this
      * configuration.
      */
-    default @Nullable Size getTargetResolution(@Nullable Size valueIfMissing) {
+    @Nullable
+    default Size getTargetResolution(@Nullable Size valueIfMissing) {
         return retrieveOption(ImageOutputConfig.OPTION_TARGET_RESOLUTION, valueIfMissing);
     }
 
@@ -205,7 +205,8 @@ public interface ImageOutputConfig extends ReadableConfig {
      * @return The stored value, if it exists in this configuration.
      * @throws IllegalArgumentException if the option does not exist in this configuration.
      */
-    default @NonNull Size getTargetResolution() {
+    @NonNull
+    default Size getTargetResolution() {
         return retrieveOption(ImageOutputConfig.OPTION_TARGET_RESOLUTION);
     }
 
@@ -216,7 +217,8 @@ public interface ImageOutputConfig extends ReadableConfig {
      * @return The stored value or <code>valueIfMissing</code> if the value does not exist in this
      * configuration.
      */
-    default @Nullable Size getDefaultResolution(@Nullable Size valueIfMissing) {
+    @Nullable
+    default Size getDefaultResolution(@Nullable Size valueIfMissing) {
         return retrieveOption(OPTION_DEFAULT_RESOLUTION, valueIfMissing);
     }
 
@@ -226,7 +228,8 @@ public interface ImageOutputConfig extends ReadableConfig {
      * @return The stored value, if it exists in this configuration.
      * @throws IllegalArgumentException if the option does not exist in this configuration.
      */
-    default @NonNull Size getDefaultResolution() {
+    @NonNull
+    default Size getDefaultResolution() {
         return retrieveOption(OPTION_DEFAULT_RESOLUTION);
     }
 
@@ -238,7 +241,8 @@ public interface ImageOutputConfig extends ReadableConfig {
      * @return The stored value or <code>valueIfMissing</code> if the value does not exist in this
      * configuration.
      */
-    default @Nullable Size getMaxResolution(@Nullable Size valueIfMissing) {
+    @Nullable
+    default Size getMaxResolution(@Nullable Size valueIfMissing) {
         return retrieveOption(OPTION_MAX_RESOLUTION, valueIfMissing);
     }
 
@@ -249,7 +253,8 @@ public interface ImageOutputConfig extends ReadableConfig {
      * @return The stored value, if it exists in this configuration.
      * @throws IllegalArgumentException if the option does not exist in this configuration.
      */
-    default @NonNull Size getMaxResolution() {
+    @NonNull
+    default Size getMaxResolution() {
         return retrieveOption(OPTION_MAX_RESOLUTION);
     }
 
@@ -264,7 +269,8 @@ public interface ImageOutputConfig extends ReadableConfig {
      * @return The stored value or <code>valueIfMissing</code> if the value does not exist in this
      * configuration.
      */
-    default @Nullable List<Pair<Integer, Size[]>> getSupportedResolutions(
+    @Nullable
+    default List<Pair<Integer, Size[]>> getSupportedResolutions(
             @Nullable List<Pair<Integer, Size[]>> valueIfMissing) {
         return retrieveOption(OPTION_SUPPORTED_RESOLUTIONS, valueIfMissing);
     }
@@ -276,8 +282,8 @@ public interface ImageOutputConfig extends ReadableConfig {
      * @return The stored value or <code>valueIfMissing</code> if the value does not exist in this
      * configuration.
      */
-    default @Nullable ResolutionSelector getResolutionSelector(
-            @Nullable ResolutionSelector valueIfMissing) {
+    @Nullable
+    default ResolutionSelector getResolutionSelector(@Nullable ResolutionSelector valueIfMissing) {
         return retrieveOption(OPTION_RESOLUTION_SELECTOR, valueIfMissing);
     }
 
@@ -287,7 +293,8 @@ public interface ImageOutputConfig extends ReadableConfig {
      * @return The stored value, if it exists in this configuration.
      * @throws IllegalArgumentException if the option does not exist in this configuration.
      */
-    default @NonNull ResolutionSelector getResolutionSelector() {
+    @NonNull
+    default ResolutionSelector getResolutionSelector() {
         return retrieveOption(OPTION_RESOLUTION_SELECTOR);
     }
 
@@ -301,7 +308,8 @@ public interface ImageOutputConfig extends ReadableConfig {
      * @return The stored value, if it exists in this configuration.
      * @throws IllegalArgumentException if the option does not exist in this configuration.
      */
-    default @NonNull List<Pair<Integer, Size[]>> getSupportedResolutions() {
+    @NonNull
+    default List<Pair<Integer, Size[]>> getSupportedResolutions() {
         return retrieveOption(OPTION_SUPPORTED_RESOLUTIONS);
     }
 
@@ -314,7 +322,8 @@ public interface ImageOutputConfig extends ReadableConfig {
      * @return The stored value, if it exists in this configuration.
      * @throws IllegalArgumentException if the option does not exist in this configuration.
      */
-    default @Nullable List<Size> getCustomOrderedResolutions(@Nullable List<Size> valueIfMissing) {
+    @Nullable
+    default List<Size> getCustomOrderedResolutions(@Nullable List<Size> valueIfMissing) {
         List<Size> list = retrieveOption(OPTION_CUSTOM_ORDERED_RESOLUTIONS, valueIfMissing);
         return list != null ? new ArrayList<>(list) : null;
     }
@@ -328,7 +337,8 @@ public interface ImageOutputConfig extends ReadableConfig {
      * @return The stored value, if it exists in this configuration.
      * @throws IllegalArgumentException if the option does not exist in this configuration.
      */
-    default @NonNull List<Size> getCustomOrderedResolutions() {
+    @NonNull
+    default List<Size> getCustomOrderedResolutions() {
         return new ArrayList<>(requireNonNull(retrieveOption(OPTION_CUSTOM_ORDERED_RESOLUTIONS)));
     }
 
@@ -382,7 +392,8 @@ public interface ImageOutputConfig extends ReadableConfig {
          *                    target's width and height.
          * @return The current Builder.
          */
-        @NonNull B setTargetAspectRatio(@AspectRatio.Ratio int aspectRatio);
+        @NonNull
+        B setTargetAspectRatio(@AspectRatio.Ratio int aspectRatio);
 
         /**
          * Sets the rotation of the intended target for images from this configuration.
@@ -394,7 +405,8 @@ public interface ImageOutputConfig extends ReadableConfig {
          * @param rotation The rotation of the intended target.
          * @return The current Builder.
          */
-        @NonNull B setTargetRotation(@RotationValue int rotation);
+        @NonNull
+        B setTargetRotation(@RotationValue int rotation);
 
         /**
          * Sets the mirror mode of the intended target for images from this configuration.
@@ -405,7 +417,8 @@ public interface ImageOutputConfig extends ReadableConfig {
          * @param mirrorMode The mirror mode of the intended target.
          * @return The current Builder.
          */
-        @NonNull B setMirrorMode(@MirrorMode.Mirror int mirrorMode);
+        @NonNull
+        B setMirrorMode(@MirrorMode.Mirror int mirrorMode);
 
         /**
          * Sets the resolution of the intended target from this configuration.
@@ -419,7 +432,8 @@ public interface ImageOutputConfig extends ReadableConfig {
          * @param resolution The target resolution to choose from supported output sizes list.
          * @return The current Builder.
          */
-        @NonNull B setTargetResolution(@NonNull Size resolution);
+        @NonNull
+        B setTargetResolution(@NonNull Size resolution);
 
         /**
          * Sets the default resolution of the intended target from this configuration.
@@ -427,7 +441,8 @@ public interface ImageOutputConfig extends ReadableConfig {
          * @param resolution The default resolution to choose from supported output sizes list.
          * @return The current Builder.
          */
-        @NonNull B setDefaultResolution(@NonNull Size resolution);
+        @NonNull
+        B setDefaultResolution(@NonNull Size resolution);
 
         /**
          * Sets the max resolution limitation of the intended target from this configuration.
@@ -436,7 +451,8 @@ public interface ImageOutputConfig extends ReadableConfig {
          *                   list.
          * @return The current Builder.
          */
-        @NonNull B setMaxResolution(@NonNull Size resolution);
+        @NonNull
+        B setMaxResolution(@NonNull Size resolution);
 
         /**
          * Sets the supported resolutions can be used by target from this configuration.
@@ -448,7 +464,8 @@ public interface ImageOutputConfig extends ReadableConfig {
          * @param resolutionsList The resolutions can be supported for image formats.
          * @return The current Builder.
          */
-        @NonNull B setSupportedResolutions(@NonNull List<Pair<Integer, Size[]>> resolutionsList);
+        @NonNull
+        B setSupportedResolutions(@NonNull List<Pair<Integer, Size[]>> resolutionsList);
 
         /**
          * Sets the custom resolutions can be used by target from this configuration.
@@ -461,7 +478,8 @@ public interface ImageOutputConfig extends ReadableConfig {
          * @param resolutionsList The resolutions can be supported for this image config.
          * @return The current Builder.
          */
-        @NonNull B setCustomOrderedResolutions(@NonNull List<Size> resolutionsList);
+        @NonNull
+        B setCustomOrderedResolutions(@NonNull List<Size> resolutionsList);
 
         /**
          * Sets the resolution selector can be used by target from this configuration.
@@ -469,7 +487,8 @@ public interface ImageOutputConfig extends ReadableConfig {
          * @param resolutionSelector The resolution selector to select a preferred resolution.
          * @return The current Builder.
          */
-        @NonNull B setResolutionSelector(@NonNull ResolutionSelector resolutionSelector);
+        @NonNull
+        B setResolutionSelector(@NonNull ResolutionSelector resolutionSelector);
     }
 
     /**

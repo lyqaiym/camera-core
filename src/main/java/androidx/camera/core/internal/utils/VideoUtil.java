@@ -21,11 +21,10 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.camera.core.Logger;
 import androidx.core.util.Preconditions;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 /**
  * Utility class for video recording related operations.
@@ -36,8 +35,9 @@ public final class VideoUtil {
     private VideoUtil(){}
 
     /** Gets the absolute path from a Uri. */
+    @Nullable
     @SuppressWarnings("deprecation")
-    public static @Nullable String getAbsolutePathFromUri(@NonNull ContentResolver resolver,
+    public static String getAbsolutePathFromUri(@NonNull ContentResolver resolver,
             @NonNull Uri contentUri) {
         Cursor cursor = null;
         try {

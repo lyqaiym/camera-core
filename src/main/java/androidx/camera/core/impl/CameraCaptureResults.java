@@ -16,11 +16,10 @@
 
 package androidx.camera.core.impl;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.camera.core.ImageInfo;
 import androidx.camera.core.internal.CameraCaptureResultImageInfo;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 /**
  * Utility functionality for {@link CameraCaptureResult}.
@@ -33,8 +32,8 @@ public final class CameraCaptureResults {
      * @return The CameraCaptureResult instance or {@code null} if the ImageInfo was constructed
      * without using a CameraCaptureResult.
      */
-    public static @Nullable CameraCaptureResult retrieveCameraCaptureResult(
-            @NonNull ImageInfo imageInfo) {
+    @Nullable
+    public static CameraCaptureResult retrieveCameraCaptureResult(@NonNull ImageInfo imageInfo) {
         if (imageInfo instanceof CameraCaptureResultImageInfo) {
             return ((CameraCaptureResultImageInfo) imageInfo).getCameraCaptureResult();
         } else {

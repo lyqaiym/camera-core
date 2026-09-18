@@ -18,15 +18,14 @@ package androidx.camera.core.impl;
 
 import android.view.Surface;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.camera.core.impl.utils.futures.FutureCallback;
 import androidx.camera.core.impl.utils.futures.Futures;
 import androidx.concurrent.futures.CallbackToFutureAdapter;
 import androidx.core.util.Preconditions;
 
 import com.google.common.util.concurrent.ListenableFuture;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -53,7 +52,8 @@ public final class DeferrableSurfaces {
      * @param executor                 The executor service to run the task.
      * @param scheduledExecutorService The executor service to schedule the timeout event.
      */
-    public static @NonNull ListenableFuture<List<Surface>> surfaceListWithTimeout(
+    @NonNull
+    public static ListenableFuture<List<Surface>> surfaceListWithTimeout(
             @NonNull Collection<DeferrableSurface> deferrableSurfaces,
             boolean removeNullSurfaces, long timeoutMillis, @NonNull Executor executor,
             @NonNull ScheduledExecutorService scheduledExecutorService) {

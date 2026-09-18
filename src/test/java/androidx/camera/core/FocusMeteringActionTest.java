@@ -48,7 +48,7 @@ public class FocusMeteringActionTest {
         assertThat(action.getMeteringPointsAe()).containsExactly(mPoint1);
         assertThat(action.getMeteringPointsAwb()).containsExactly(mPoint1);
         assertThat(action.getAutoCancelDurationInMillis()).isEqualTo(
-                FocusMeteringAction.DEFAULT_AUTO_CANCEL_DURATION_MILLIS);
+                FocusMeteringAction.DEFAULT_AUTOCANCEL_DURATION);
         assertThat(action.isAutoCancelEnabled()).isTrue();
     }
 

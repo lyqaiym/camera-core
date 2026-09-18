@@ -19,10 +19,10 @@ package androidx.camera.core.impl;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.util.Size;
 
-import com.google.auto.value.AutoValue;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
+import com.google.auto.value.AutoValue;
 
 import java.util.Map;
 
@@ -66,7 +66,8 @@ public abstract class SurfaceSizeDefinition {
      *                            resolution in the maximum resolution sensor pixel mode.
      * @return new {@link SurfaceSizeDefinition} object
      */
-    public static @NonNull SurfaceSizeDefinition create(
+    @NonNull
+    public static SurfaceSizeDefinition create(
             @NonNull Size analysisSize,
             @NonNull Map<Integer, Size> s720pSizeMap,
             @NonNull Size previewSize,
@@ -85,31 +86,39 @@ public abstract class SurfaceSizeDefinition {
     }
 
     /** Returns the size of an ANALYSIS stream. */
-    public abstract @NonNull Size getAnalysisSize();
+    @NonNull
+    public abstract Size getAnalysisSize();
 
     /** Returns the format to size map of an s720p stream. */
-    public abstract @NonNull Map<Integer, Size> getS720pSizeMap();
+    @NonNull
+    public abstract Map<Integer, Size> getS720pSizeMap();
 
     /** Returns the size of a PREVIEW stream. */
-    public abstract @NonNull Size getPreviewSize();
+    @NonNull
+    public abstract Size getPreviewSize();
 
     /** Returns the format to size map of an s1440p stream. */
-    public abstract @NonNull Map<Integer, Size> getS1440pSizeMap();
+    @NonNull
+    public abstract Map<Integer, Size> getS1440pSizeMap();
 
     /** Returns the size of a RECORD stream*/
-    public abstract @NonNull Size getRecordSize();
+    @NonNull
+    public abstract Size getRecordSize();
 
     /** Returns the format to size map of an MAXIMUM stream. */
-    public abstract @NonNull Map<Integer, Size> getMaximumSizeMap();
+    @NonNull
+    public abstract Map<Integer, Size> getMaximumSizeMap();
 
     /** Returns the format to size map of an ULTRA_MAXIMUM stream. */
-    public abstract @NonNull Map<Integer, Size> getUltraMaximumSizeMap();
+    @NonNull
+    public abstract Map<Integer, Size> getUltraMaximumSizeMap();
 
     /**
      * Returns the s720p size for the specified format, or {@code null} null if there is no data
      * for the format.
      */
-    public @NonNull Size getS720pSize(int format) {
+    @NonNull
+    public Size getS720pSize(int format) {
         return getS720pSizeMap().get(format);
     }
 
@@ -117,7 +126,8 @@ public abstract class SurfaceSizeDefinition {
      * Returns the s1440p size for the specified format, or {@code null} null if there is no data
      * for the format.
      */
-    public @NonNull Size getS1440pSize(int format) {
+    @NonNull
+    public Size getS1440pSize(int format) {
         return getS1440pSizeMap().get(format);
     }
 
@@ -125,7 +135,8 @@ public abstract class SurfaceSizeDefinition {
      * Returns the MAXIMUM size for the specified format, or {@code null} null if there is no
      * data for the format.
      */
-    public @Nullable Size getMaximumSize(int format) {
+    @NonNull
+    public Size getMaximumSize(int format) {
         return getMaximumSizeMap().get(format);
     }
 
@@ -133,7 +144,8 @@ public abstract class SurfaceSizeDefinition {
      * Returns the ULTRA_MAXIMUM size for the specified format, or {@code null} if the device
      * doesn't support maximum resolution sensor pixel mode.
      */
-    public @Nullable Size getUltraMaximumSize(int format) {
+    @Nullable
+    public Size getUltraMaximumSize(int format) {
         return getUltraMaximumSizeMap().get(format);
     }
 }

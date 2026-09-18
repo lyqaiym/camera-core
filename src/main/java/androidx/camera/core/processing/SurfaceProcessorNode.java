@@ -33,6 +33,8 @@ import android.graphics.RectF;
 import android.util.Size;
 
 import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.camera.core.CameraEffect;
 import androidx.camera.core.Logger;
 import androidx.camera.core.ProcessingException;
@@ -49,9 +51,6 @@ import androidx.core.util.Preconditions;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.util.concurrent.ListenableFuture;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.List;
@@ -80,11 +79,15 @@ public class SurfaceProcessorNode implements
 
     private static final String TAG = "SurfaceProcessorNode";
 
-    final @NonNull SurfaceProcessorInternal mSurfaceProcessor;
-    final @NonNull CameraInternal mCameraInternal;
+    @NonNull
+    final SurfaceProcessorInternal mSurfaceProcessor;
+    @NonNull
+    final CameraInternal mCameraInternal;
     // Guarded by main thread.
-    private @Nullable Out mOutput;
-    private @Nullable In mInput;
+    @Nullable
+    private Out mOutput;
+    @Nullable
+    private In mInput;
 
     /**
      * Constructs the {@link SurfaceProcessorNode}.
@@ -102,8 +105,9 @@ public class SurfaceProcessorNode implements
      * {@inheritDoc}
      */
     @Override
+    @NonNull
     @MainThread
-    public @NonNull Out transform(@NonNull In input) {
+    public Out transform(@NonNull In input) {
         Threads.checkMainThread();
         mInput = input;
         mOutput = new Out();
@@ -119,7 +123,8 @@ public class SurfaceProcessorNode implements
         return mOutput;
     }
 
-    private @NonNull SurfaceEdge transformSingleOutput(@NonNull SurfaceEdge input,
+    @NonNull
+    private SurfaceEdge transformSingleOutput(@NonNull SurfaceEdge input,
             @NonNull OutConfig outConfig) {
         SurfaceEdge outputSurface;
         Rect cropRect = outConfig.getCropRect();
@@ -293,7 +298,8 @@ public class SurfaceProcessorNode implements
     /**
      * Gets the {@link SurfaceProcessorInternal} used by this node.
      */
-    public @NonNull SurfaceProcessorInternal getSurfaceProcessor() {
+    @NonNull
+    public SurfaceProcessorInternal getSurfaceProcessor() {
         return mSurfaceProcessor;
     }
 
@@ -308,7 +314,8 @@ public class SurfaceProcessorNode implements
          *
          * <p> {@link SurfaceProcessorNode} only supports a single input stream.
          */
-        public abstract @NonNull SurfaceEdge getSurfaceEdge();
+        @NonNull
+        public abstract SurfaceEdge getSurfaceEdge();
 
         /**
          * Gets the config for generating output streams.
@@ -317,12 +324,14 @@ public class SurfaceProcessorNode implements
          * {@link OutConfig} in this list.
          */
         @SuppressWarnings("AutoValueImmutableFields")
-        public abstract @NonNull List<OutConfig> getOutConfigs();
+        @NonNull
+        public abstract List<OutConfig> getOutConfigs();
 
         /**
          * Creates a {@link In} instance.
          */
-        public static @NonNull In of(@NonNull SurfaceEdge edge, @NonNull List<OutConfig> configs) {
+        @NonNull
+        public static In of(@NonNull SurfaceEdge edge, @NonNull List<OutConfig> configs) {
             return new AutoValue_SurfaceProcessorNode_In(edge, configs);
         }
     }

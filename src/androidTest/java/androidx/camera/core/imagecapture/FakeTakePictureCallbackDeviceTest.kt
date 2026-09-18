@@ -16,7 +16,6 @@
 
 package androidx.camera.core.imagecapture
 
-import android.graphics.ImageFormat
 import androidx.camera.core.ImageCapture.OutputFileResults
 import androidx.camera.testing.impl.fakes.FakeImageInfo
 import androidx.camera.testing.impl.fakes.FakeImageProxy
@@ -34,7 +33,7 @@ class FakeTakePictureCallbackDeviceTest {
     @Test
     fun onDiskResultArrivesBeforeGet_canGetResult() = runBlocking {
         // Arrange.
-        val onDiskResult = OutputFileResults(null, ImageFormat.JPEG)
+        val onDiskResult = OutputFileResults(null)
         // Assert.
         fakeTakePictureCallback.onFinalResult(onDiskResult)
         // Act.

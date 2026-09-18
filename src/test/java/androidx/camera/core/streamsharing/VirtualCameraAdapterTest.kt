@@ -97,8 +97,6 @@ class VirtualCameraAdapterTest {
             Pair(child1 as UseCase, createSurfaceEdge()),
             Pair(child2 as UseCase, createSurfaceEdge())
         )
-    private val selectedChildSizes =
-        mapOf<UseCase, Size>(child1 to INPUT_SIZE, child2 to INPUT_SIZE)
     private val useCaseConfigFactory = FakeUseCaseConfigFactory()
     private lateinit var adapter: VirtualCameraAdapter
     private var snapshotTriggered = false
@@ -225,7 +223,7 @@ class VirtualCameraAdapterTest {
     fun setUseCaseActiveAndInactive_surfaceConnectsAndDisconnects() {
         // Arrange.
         adapter.bindChildren()
-        adapter.setChildrenEdges(childrenEdges, selectedChildSizes)
+        adapter.setChildrenEdges(childrenEdges)
         child1.updateSessionConfigForTesting(SESSION_CONFIG_WITH_SURFACE)
         // Assert: edge open by default.
         verifyEdge(child1, OPEN, NO_PROVIDER)
@@ -244,7 +242,7 @@ class VirtualCameraAdapterTest {
     fun resetWithClosedChildSurface_invokesErrorListener() {
         // Arrange.
         adapter.bindChildren()
-        adapter.setChildrenEdges(childrenEdges, selectedChildSizes)
+        adapter.setChildrenEdges(childrenEdges)
         child1.updateSessionConfigForTesting(SESSION_CONFIG_WITH_SURFACE)
         child1.notifyActiveForTesting()
 
@@ -262,7 +260,7 @@ class VirtualCameraAdapterTest {
     fun resetUseCase_edgeInvalidated() {
         // Arrange: setup and get the old DeferrableSurface.
         adapter.bindChildren()
-        adapter.setChildrenEdges(childrenEdges, selectedChildSizes)
+        adapter.setChildrenEdges(childrenEdges)
         child1.updateSessionConfigForTesting(SESSION_CONFIG_WITH_SURFACE)
         child1.notifyActiveForTesting()
         val oldSurface = childrenEdges[child1]!!.deferrableSurfaceForTesting
@@ -279,7 +277,7 @@ class VirtualCameraAdapterTest {
     fun updateUseCaseWithAndWithoutSurface_surfaceConnectsAndDisconnects() {
         // Arrange
         adapter.bindChildren()
-        adapter.setChildrenEdges(childrenEdges, selectedChildSizes)
+        adapter.setChildrenEdges(childrenEdges)
         child1.notifyActiveForTesting()
         verifyEdge(child1, OPEN, NO_PROVIDER)
 
@@ -366,17 +364,10 @@ class VirtualCameraAdapterTest {
     @Test
     fun updateChildrenSpec_updateAndNotifyChildren() {
         // Act: update children with the map.
-        val selectedChildSizes =
-            mapOf<UseCase, Size>(child1 to Size(400, 300), child2 to Size(720, 480))
-        adapter.setChildrenEdges(childrenEdges, selectedChildSizes)
-        // Assert: surface size, original selected size, crop rect and transformation propagated
-        // to children
+        adapter.setChildrenEdges(childrenEdges)
+        // Assert: surface size, crop rect and transformation propagated to children
         assertThat(child1.attachedStreamSpec!!.resolution).isEqualTo(INPUT_SIZE)
-        assertThat(child1.attachedStreamSpec!!.originalConfiguredResolution)
-            .isEqualTo(Size(400, 300))
         assertThat(child2.attachedStreamSpec!!.resolution).isEqualTo(INPUT_SIZE)
-        assertThat(child2.attachedStreamSpec!!.originalConfiguredResolution)
-            .isEqualTo(Size(720, 480))
         assertThat(child1.viewPortCropRect).isEqualTo(CROP_RECT)
         assertThat(child2.viewPortCropRect).isEqualTo(CROP_RECT)
         assertThat(child1.sensorToBufferTransformMatrix).isEqualTo(SENSOR_TO_BUFFER)

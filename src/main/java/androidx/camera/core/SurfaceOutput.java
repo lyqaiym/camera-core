@@ -26,14 +26,13 @@ import android.util.Size;
 import android.view.Surface;
 
 import androidx.annotation.IntDef;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 import androidx.camera.core.impl.CameraInternal;
 import androidx.core.util.Consumer;
 
 import com.google.auto.value.AutoValue;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
 import java.lang.annotation.Retention;
@@ -61,7 +60,8 @@ public interface SurfaceOutput extends Closeable {
      *                 {@link SurfaceOutput}. The implementation should then invoke
      *                 {@link #close()} to mark the {@link Surface} as no longer in use.
      */
-    @NonNull Surface getSurface(
+    @NonNull
+    Surface getSurface(
             @NonNull Executor executor,
             @NonNull Consumer<Event> listener);
 
@@ -85,7 +85,8 @@ public interface SurfaceOutput extends Closeable {
     /**
      * Gets the size of the {@link Surface}.
      */
-    @NonNull Size getSize();
+    @NonNull
+    Size getSize();
 
     /**
      * Call this method to mark the {@link Surface} as no longer in use.
@@ -151,14 +152,14 @@ public interface SurfaceOutput extends Closeable {
      * @param original the original 4x4 matrix. The array must have exactly 16 elements.
      * @see SurfaceTexture#getTransformMatrix(float[])
      */
-    void updateTransformMatrix(float @NonNull [] updated, float @NonNull [] original);
+    void updateTransformMatrix(@NonNull float[] updated, @NonNull float[] original);
 
     /**
      * Applies an additional 4x4 transformation on the original matrix, in dual concurrent cameras.
      */
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
     default void updateTransformMatrix(
-            float @NonNull [] updated, float @NonNull [] original, boolean isPrimary) {
+            @NonNull float[] updated, @NonNull float[] original, boolean isPrimary) {
     }
 
     /**
@@ -183,7 +184,8 @@ public interface SurfaceOutput extends Closeable {
      *  analysisToEffect.postConcat(sensorToEffect);
      * </pre></code>
      */
-    default @NonNull Matrix getSensorToBufferTransform() {
+    @NonNull
+    default Matrix getSensorToBufferTransform() {
         return new Matrix();
     }
 
@@ -228,13 +230,15 @@ public interface SurfaceOutput extends Closeable {
         /**
          * Gets the {@link SurfaceOutput} associated with this event.
          */
-        public abstract @NonNull SurfaceOutput getSurfaceOutput();
+        @NonNull
+        public abstract SurfaceOutput getSurfaceOutput();
 
         /**
          * Creates a {@link Event} for sending to the implementation.
          */
         @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
-        public static SurfaceOutput.@NonNull Event of(@EventCode int code,
+        @NonNull
+        public static SurfaceOutput.Event of(@EventCode int code,
                 @NonNull SurfaceOutput surfaceOutput) {
             return new AutoValue_SurfaceOutput_Event(code, surfaceOutput);
         }
@@ -250,17 +254,20 @@ public interface SurfaceOutput extends Closeable {
         /**
          * Gets input size.
          */
-        public abstract @NonNull Size getInputSize();
+        @NonNull
+        public abstract Size getInputSize();
 
         /**
          * Gets input crop rect.
          */
-        public abstract @NonNull Rect getInputCropRect();
+        @NonNull
+        public abstract Rect getInputCropRect();
 
         /**
          * Gets {@link CameraInternal}.
          */
-        public abstract @Nullable CameraInternal getCameraInternal();
+        @Nullable
+        public abstract CameraInternal getCameraInternal();
 
         /**
          * Gets input rotation degrees.
@@ -275,7 +282,8 @@ public interface SurfaceOutput extends Closeable {
         /**
          * Creates a {@link CameraInputInfo}.
          */
-        public static SurfaceOutput.@NonNull CameraInputInfo of(
+        @NonNull
+        public static SurfaceOutput.CameraInputInfo of(
                 @NonNull Size inputSize,
                 @NonNull Rect inputCropRect,
                 @Nullable CameraInternal cameraInternal,

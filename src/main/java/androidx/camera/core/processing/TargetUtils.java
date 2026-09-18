@@ -20,9 +20,8 @@ import static androidx.camera.core.CameraEffect.IMAGE_CAPTURE;
 import static androidx.camera.core.CameraEffect.PREVIEW;
 import static androidx.camera.core.CameraEffect.VIDEO_CAPTURE;
 
+import androidx.annotation.NonNull;
 import androidx.core.util.Preconditions;
-
-import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -67,7 +66,8 @@ public class TargetUtils {
                 getHumanReadableNames(supportedTargets)));
     }
 
-    private static @NonNull String getHumanReadableNames(@NonNull Collection<Integer> targets) {
+    @NonNull
+    private static String getHumanReadableNames(@NonNull Collection<Integer> targets) {
         List<String> targetNameList = new ArrayList<>();
         for (Integer target : targets) {
             targetNameList.add(getHumanReadableName(target));
@@ -78,7 +78,8 @@ public class TargetUtils {
     /**
      * Returns a human-readable name for the target.
      */
-    public static @NonNull String getHumanReadableName(int target) {
+    @NonNull
+    public static String getHumanReadableName(int target) {
         List<String> names = new ArrayList<>();
         if ((target & IMAGE_CAPTURE) != 0) {
             names.add("IMAGE_CAPTURE");

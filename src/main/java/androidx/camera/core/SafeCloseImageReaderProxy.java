@@ -19,13 +19,12 @@ package androidx.camera.core;
 import android.view.Surface;
 
 import androidx.annotation.GuardedBy;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 import androidx.annotation.VisibleForTesting;
 import androidx.camera.core.ForwardingImageProxy.OnImageCloseListener;
 import androidx.camera.core.impl.ImageReaderProxy;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.util.concurrent.Executor;
 
@@ -48,7 +47,8 @@ public class SafeCloseImageReaderProxy implements ImageReaderProxy {
     @GuardedBy("mLock")
     private final ImageReaderProxy mImageReaderProxy;
 
-    private final @Nullable Surface mSurface;
+    @Nullable
+    private final Surface mSurface;
     private OnImageCloseListener mForwardingImageCloseListener;
 
     // Called after images are closed to check if the ImageReaderProxy should be closed
@@ -71,15 +71,17 @@ public class SafeCloseImageReaderProxy implements ImageReaderProxy {
         mSurface = imageReaderProxy.getSurface();
     }
 
+    @Nullable
     @Override
-    public @Nullable ImageProxy acquireLatestImage() {
+    public ImageProxy acquireLatestImage() {
         synchronized (mLock) {
             return wrapImageProxy(mImageReaderProxy.acquireLatestImage());
         }
     }
 
+    @Nullable
     @Override
-    public @Nullable ImageProxy acquireNextImage() {
+    public ImageProxy acquireNextImage() {
         synchronized (mLock) {
             return wrapImageProxy(mImageReaderProxy.acquireNextImage());
         }
@@ -104,7 +106,8 @@ public class SafeCloseImageReaderProxy implements ImageReaderProxy {
     }
 
     @GuardedBy("mLock")
-    private @Nullable ImageProxy wrapImageProxy(@Nullable ImageProxy imageProxy) {
+    @Nullable
+    private ImageProxy wrapImageProxy(@Nullable ImageProxy imageProxy) {
         if (imageProxy != null) {
             mOutstandingImages++;
             SingleCloseImageProxy singleCloseImageProxy =
@@ -192,8 +195,9 @@ public class SafeCloseImageReaderProxy implements ImageReaderProxy {
         }
     }
 
+    @Nullable
     @Override
-    public @Nullable Surface getSurface() {
+    public Surface getSurface() {
         synchronized (mLock) {
             return mImageReaderProxy.getSurface();
         }
@@ -219,7 +223,8 @@ public class SafeCloseImageReaderProxy implements ImageReaderProxy {
      * Returns the underlying {@link ImageReaderProxy} for testing.
      */
     @VisibleForTesting
-    public @NonNull ImageReaderProxy getImageReaderProxy() {
+    @NonNull
+    public ImageReaderProxy getImageReaderProxy() {
         synchronized (mLock) {
             return mImageReaderProxy;
         }

@@ -26,6 +26,8 @@ import android.graphics.Rect;
 import android.media.Image;
 import android.util.Size;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.camera.core.ImageInfo;
 import androidx.camera.core.ImageProxy;
 import androidx.camera.core.impl.CameraCaptureResult;
@@ -33,9 +35,6 @@ import androidx.camera.core.impl.utils.Exif;
 import androidx.camera.core.impl.utils.TransformUtils;
 
 import com.google.auto.value.AutoValue;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.nio.ByteBuffer;
 
@@ -68,7 +67,8 @@ public abstract class Packet<T> {
      * Instead, the caller should use the metadata of the {@link Packet}. e.g.
      * {@link #getCropRect()}.
      */
-    public abstract @NonNull T getData();
+    @NonNull
+    public abstract T getData();
 
     /**
      * The Exif info extracted from JPEG bytes.
@@ -77,7 +77,8 @@ public abstract class Packet<T> {
      * work with non-JPEG format. In that case, the exif data can be obtained via
      * {@link ImageInfo#populateExifData}.
      */
-    public abstract @Nullable Exif getExif();
+    @Nullable
+    public abstract Exif getExif();
 
     /**
      * Gets the format of the image.
@@ -94,14 +95,16 @@ public abstract class Packet<T> {
      *
      * <p>This value must match the dimension of the image in {@link #getData()}.
      */
-    public abstract @NonNull Size getSize();
+    @NonNull
+    public abstract Size getSize();
 
     /**
      * Gets the crop rect.
      *
      * <p>This value is based on the coordinate system of the image in {@link #getData()}.
      */
-    public abstract @NonNull Rect getCropRect();
+    @NonNull
+    public abstract Rect getCropRect();
 
     /**
      * Gets rotation degrees
@@ -116,13 +119,15 @@ public abstract class Packet<T> {
      * <p>This value represents the transformation from sensor coordinate system to the
      * coordinate system of the image buffer in {@link #getData()}.
      */
-    public abstract @NonNull Matrix getSensorToBufferTransform();
+    @NonNull
+    public abstract Matrix getSensorToBufferTransform();
 
 
     /**
      * Gets the {@link CameraCaptureResult} associated with this frame.
      */
-    public abstract @NonNull CameraCaptureResult getCameraCaptureResult();
+    @NonNull
+    public abstract CameraCaptureResult getCameraCaptureResult();
 
     /**
      * Returns true if the {@link Packet} needs cropping.
@@ -134,7 +139,8 @@ public abstract class Packet<T> {
     /**
      * Creates {@link Bitmap} based {@link Packet}.
      */
-    public static @NonNull Packet<Bitmap> of(@NonNull Bitmap data, @NonNull Exif exif,
+    @NonNull
+    public static Packet<Bitmap> of(@NonNull Bitmap data, @NonNull Exif exif,
             @NonNull Rect cropRect, int rotationDegrees, @NonNull Matrix sensorToBufferTransform,
             @NonNull CameraCaptureResult cameraCaptureResult) {
         return new AutoValue_Packet<>(data, exif, ImageFormat.FLEX_RGBA_8888,
@@ -145,7 +151,8 @@ public abstract class Packet<T> {
     /**
      * Creates {@link ImageProxy} based {@link Packet}.
      */
-    public static @NonNull Packet<ImageProxy> of(@NonNull ImageProxy data, @Nullable Exif exif,
+    @NonNull
+    public static Packet<ImageProxy> of(@NonNull ImageProxy data, @Nullable Exif exif,
             @NonNull Rect cropRect, int rotationDegrees, @NonNull Matrix sensorToBufferTransform,
             @NonNull CameraCaptureResult cameraCaptureResult) {
         return of(data, exif, new Size(data.getWidth(), data.getHeight()), cropRect,
@@ -159,7 +166,8 @@ public abstract class Packet<T> {
      * match the image content. We might need to override it with the correct value. The size of
      * the {@link Image} class always matches the {@link android.view.Surface} size.
      */
-    public static @NonNull Packet<ImageProxy> of(@NonNull ImageProxy data, @Nullable Exif exif,
+    @NonNull
+    public static Packet<ImageProxy> of(@NonNull ImageProxy data, @Nullable Exif exif,
             @NonNull Size size, @NonNull Rect cropRect, int rotationDegrees,
             @NonNull Matrix sensorToBufferTransform,
             @NonNull CameraCaptureResult cameraCaptureResult) {
@@ -173,7 +181,8 @@ public abstract class Packet<T> {
     /**
      * Creates byte array based {@link Packet}.
      */
-    public static @NonNull Packet<byte[]> of(byte @NonNull [] data, @NonNull Exif exif,
+    @NonNull
+    public static Packet<byte[]> of(@NonNull byte[] data, @NonNull Exif exif,
             int format, @NonNull Size size, @NonNull Rect cropRect,
             int rotationDegrees, @NonNull Matrix sensorToBufferTransform,
             @NonNull CameraCaptureResult cameraCaptureResult) {

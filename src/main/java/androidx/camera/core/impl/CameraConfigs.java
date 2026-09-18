@@ -16,7 +16,7 @@
 
 package androidx.camera.core.impl;
 
-import org.jspecify.annotations.NonNull;
+import androidx.annotation.NonNull;
 
 /**
  * Utility methods for operating on {@link CameraConfig} instances.
@@ -27,19 +27,22 @@ public class CameraConfigs {
     /**
      * Gets the empty config instance.
      */
-    public static @NonNull CameraConfig defaultConfig() {
+    @NonNull
+    public static CameraConfig defaultConfig() {
         return DEFAULT_CAMERA_CONFIG;
     }
 
     static final class DefaultCameraConfig implements CameraConfig {
         private final Identifier mIdentifier = Identifier.create(new Object());
 
+        @NonNull
         @Override
-        public @NonNull Identifier getCompatibilityId() {
+        public Identifier getCompatibilityId() {
             return mIdentifier;
         }
+        @NonNull
         @Override
-        public @NonNull Config getConfig() {
+        public Config getConfig() {
             return OptionsBundle.emptyBundle();
         }
     }

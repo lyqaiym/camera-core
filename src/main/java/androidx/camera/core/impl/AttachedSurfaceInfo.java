@@ -16,17 +16,14 @@
 
 package androidx.camera.core.impl;
 
-import static androidx.camera.core.impl.StreamSpec.FRAME_RATE_RANGE_UNSPECIFIED;
-
 import android.util.Range;
 import android.util.Size;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.camera.core.DynamicRange;
 
 import com.google.auto.value.AutoValue;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
@@ -44,62 +41,63 @@ public abstract class AttachedSurfaceInfo {
     /**
      * Creates a new instance of SurfaceConfig with the given parameters.
      */
-    public static @NonNull AttachedSurfaceInfo create(@NonNull SurfaceConfig surfaceConfig,
+    @NonNull
+    public static AttachedSurfaceInfo create(@NonNull SurfaceConfig surfaceConfig,
             int imageFormat,
             @NonNull Size size,
             @NonNull DynamicRange dynamicRange,
             @NonNull List<UseCaseConfigFactory.CaptureType> captureTypes,
             @Nullable Config implementationOptions,
-            @Nullable Range<Integer> targetFrameRate,
-            @NonNull Range<Integer> targetHighSpeedFrameRate) {
+            @Nullable Range<Integer> targetFrameRate) {
         return new AutoValue_AttachedSurfaceInfo(surfaceConfig, imageFormat, size,
-                dynamicRange, captureTypes, implementationOptions, targetFrameRate,
-                targetHighSpeedFrameRate);
+                dynamicRange, captureTypes, implementationOptions, targetFrameRate);
     }
 
     /**
      * Obtains the StreamSpec from the given AttachedSurfaceInfo with the given
      * implementationOptions.
      */
-    public @NonNull StreamSpec toStreamSpec(
+    @NonNull
+    public StreamSpec toStreamSpec(
             @NonNull Config implementationOptions) {
         StreamSpec.Builder streamSpecBuilder =
                 StreamSpec.builder(getSize())
                         .setDynamicRange(getDynamicRange())
                         .setImplementationOptions(implementationOptions);
-        if (!FRAME_RATE_RANGE_UNSPECIFIED.equals(getTargetHighSpeedFrameRate())) {
-            streamSpecBuilder.setExpectedFrameRateRange(getTargetHighSpeedFrameRate());
-        } else if (getTargetFrameRate() != null) {
+        if (getTargetFrameRate() != null) {
             streamSpecBuilder.setExpectedFrameRateRange(getTargetFrameRate());
         }
         return streamSpecBuilder.build();
     }
 
     /** Returns the SurfaceConfig. */
-    public abstract @NonNull SurfaceConfig getSurfaceConfig();
+    @NonNull
+    public abstract SurfaceConfig getSurfaceConfig();
 
     /** Returns the configuration image format. */
     public abstract int getImageFormat();
 
     /** Returns the configuration size. */
-    public abstract @NonNull Size getSize();
+    @NonNull
+    public abstract Size getSize();
 
     /** Returns the dynamic range of this surface. */
-    public abstract @NonNull DynamicRange getDynamicRange();
+    @NonNull
+    public abstract DynamicRange getDynamicRange();
 
     /** Returns the capture types of this surface. Multiple capture types represent a
      *  {@link androidx.camera.core.streamsharing.StreamSharing} and its children.*/
     @SuppressWarnings("AutoValueImmutableFields")
-    public abstract @NonNull List<UseCaseConfigFactory.CaptureType> getCaptureTypes();
+    @NonNull
+    public abstract List<UseCaseConfigFactory.CaptureType> getCaptureTypes();
 
     /** Returns the implementations of this surface. */
-    public abstract @Nullable Config getImplementationOptions();
+    @Nullable
+    public abstract Config getImplementationOptions();
 
     /** Returns the configuration target frame rate. */
-    public abstract @Nullable Range<Integer> getTargetFrameRate();
-
-    /** Returns the configuration target high speed frame rate. */
-    public abstract @NonNull Range<Integer> getTargetHighSpeedFrameRate();
+    @Nullable
+    public abstract Range<Integer> getTargetFrameRate();
 }
 
 

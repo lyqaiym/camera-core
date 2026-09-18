@@ -16,7 +16,7 @@
 
 package androidx.camera.core;
 
-import org.jspecify.annotations.NonNull;
+import androidx.annotation.NonNull;
 
 import java.util.Set;
 
@@ -56,5 +56,7 @@ public interface ImageCaptureCapabilities {
      *
      * @see ImageCapture.Builder#setOutputFormat(int)
      */
-    @NonNull Set<@ImageCapture.OutputFormat Integer> getSupportedOutputFormats();
+    @ExperimentalImageCaptureOutputFormat
+    @NonNull
+    Set<@ImageCapture.OutputFormat Integer> getSupportedOutputFormats();
 }

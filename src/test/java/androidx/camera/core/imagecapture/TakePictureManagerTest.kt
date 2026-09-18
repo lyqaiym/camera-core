@@ -16,8 +16,6 @@
 
 package androidx.camera.core.imagecapture
 
-import android.graphics.ImageFormat
-import android.hardware.camera2.CameraCharacteristics
 import android.os.Build
 import android.os.Looper.getMainLooper
 import android.util.Size
@@ -37,7 +35,6 @@ import com.google.common.truth.Truth.assertWithMessage
 import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mockito.mock
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
@@ -53,9 +50,8 @@ class TakePictureManagerTest {
     private val imagePipeline = FakeImagePipeline()
     private val imageCaptureControl = FakeImageCaptureControl()
     private val takePictureManager =
-        TakePictureManagerImpl(imageCaptureControl).also { it.imagePipeline = imagePipeline }
+        TakePictureManager(imageCaptureControl).also { it.imagePipeline = imagePipeline }
     private val exception = ImageCaptureException(ImageCapture.ERROR_UNKNOWN, "", null)
-    private val cameraCharacteristics = mock(CameraCharacteristics::class.java)
 
     @After
     fun tearDown() {
@@ -174,7 +170,7 @@ class TakePictureManagerTest {
         processingRequest.onImageCaptured()
         // Act.
         processingRequest.onFinalResult(FakeImageProxy(FakeImageInfo()))
-        processingRequest.onFinalResult(OutputFileResults(null, ImageFormat.JPEG))
+        processingRequest.onFinalResult(OutputFileResults(null))
     }
 
     @Test
@@ -328,7 +324,7 @@ class TakePictureManagerTest {
         takePictureManager.offerRequest(request3)
         shadowOf(getMainLooper()).idle()
         val response1 = exception
-        val response2 = OutputFileResults(null, ImageFormat.JPEG)
+        val response2 = OutputFileResults(null)
         val response3 = FakeImageProxy(FakeImageInfo())
         imagePipeline.getProcessingRequest(request1).onImageCaptured()
         shadowOf(getMainLooper()).idle()
@@ -371,7 +367,7 @@ class TakePictureManagerTest {
         takePictureManager.offerRequest(request)
 
         // Act: send OutputFileResults via ImagePipeline
-        val outputFileResults = OutputFileResults(null, ImageFormat.JPEG)
+        val outputFileResults = OutputFileResults(null)
         imagePipeline.getProcessingRequest(request).onImageCaptured()
         imagePipeline.getProcessingRequest(request).onFinalResult(outputFileResults)
         shadowOf(getMainLooper()).idle()
@@ -430,11 +426,7 @@ class TakePictureManagerTest {
         // Arrange.
         // Uses the real ImagePipeline implementation to do the test
         takePictureManager.mImagePipeline =
-            ImagePipeline(
-                Utils.createEmptyImageCaptureConfig(),
-                Size(640, 480),
-                cameraCharacteristics
-            )
+            ImagePipeline(Utils.createEmptyImageCaptureConfig(), Size(640, 480))
         val request1 = FakeTakePictureRequest(FakeTakePictureRequest.Type.IN_MEMORY)
         val request2 = FakeTakePictureRequest(FakeTakePictureRequest.Type.IN_MEMORY)
 
@@ -456,11 +448,7 @@ class TakePictureManagerTest {
         // Arrange.
         // Uses the real ImagePipeline implementation to do the test
         takePictureManager.mImagePipeline =
-            ImagePipeline(
-                Utils.createEmptyImageCaptureConfig(),
-                Size(640, 480),
-                cameraCharacteristics
-            )
+            ImagePipeline(Utils.createEmptyImageCaptureConfig(), Size(640, 480))
         val request1 = FakeTakePictureRequest(FakeTakePictureRequest.Type.IN_MEMORY)
         val request2 = FakeTakePictureRequest(FakeTakePictureRequest.Type.IN_MEMORY)
 
@@ -477,11 +465,7 @@ class TakePictureManagerTest {
     fun requestFailure_failureReportedIfQuirkDisabled() {
         // Arrange: use the real ImagePipeline implementation to do the test
         takePictureManager.mImagePipeline =
-            ImagePipeline(
-                Utils.createEmptyImageCaptureConfig(),
-                Size(640, 480),
-                cameraCharacteristics
-            )
+            ImagePipeline(Utils.createEmptyImageCaptureConfig(), Size(640, 480))
 
         // Create a request and offer it to the manager.
         imageCaptureControl.shouldUsePendingResult = true
@@ -516,11 +500,7 @@ class TakePictureManagerTest {
 
         // Use the real ImagePipeline implementation to do the test
         takePictureManager.mImagePipeline =
-            ImagePipeline(
-                Utils.createEmptyImageCaptureConfig(),
-                Size(640, 480),
-                cameraCharacteristics
-            )
+            ImagePipeline(Utils.createEmptyImageCaptureConfig(), Size(640, 480))
 
         // Create a request and offer it to the manager.
         imageCaptureControl.shouldUsePendingResult = true

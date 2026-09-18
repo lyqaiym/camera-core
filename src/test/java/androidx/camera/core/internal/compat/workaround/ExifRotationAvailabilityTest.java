@@ -21,12 +21,12 @@ import static com.google.common.truth.Truth.assertThat;
 import android.graphics.ImageFormat;
 import android.os.Build;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.camera.core.ImageProxy;
 import androidx.camera.testing.impl.fakes.FakeImageInfo;
 import androidx.camera.testing.impl.fakes.FakeImageProxy;
 
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.ParameterizedRobolectricTestRunner;
@@ -64,9 +64,10 @@ public class ExifRotationAvailabilityTest {
         return data;
     }
 
-    private final @NonNull Config mConfig;
+    @NonNull
+    private final Config mConfig;
 
-    public ExifRotationAvailabilityTest(final @NonNull Config config) {
+    public ExifRotationAvailabilityTest(@NonNull final Config config) {
         mConfig = config;
     }
 
@@ -112,9 +113,12 @@ public class ExifRotationAvailabilityTest {
     }
 
     static class Config {
-        final @Nullable String mBrand;
-        final @Nullable String mModel;
-        final @NonNull ImageProxy mImage;
+        @Nullable
+        final String mBrand;
+        @Nullable
+        final String mModel;
+        @NonNull
+        final ImageProxy mImage;
         final boolean mShouldUseExifOrientation;
         final boolean mIsRotationOptionSupported;
 

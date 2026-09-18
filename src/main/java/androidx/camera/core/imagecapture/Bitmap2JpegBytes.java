@@ -22,15 +22,13 @@ import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
 import android.os.Build;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
-import androidx.annotation.RestrictTo;
 import androidx.camera.core.ImageCaptureException;
 import androidx.camera.core.processing.Operation;
 import androidx.camera.core.processing.Packet;
 
 import com.google.auto.value.AutoValue;
-
-import org.jspecify.annotations.NonNull;
 
 import java.io.ByteArrayOutputStream;
 
@@ -39,11 +37,11 @@ import java.io.ByteArrayOutputStream;
  *
  * <p>The {@link Bitmap} will be recycled and should not be used after the processing.
  */
-@RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
-public class Bitmap2JpegBytes implements Operation<Bitmap2JpegBytes.In, Packet<byte[]>> {
+class Bitmap2JpegBytes implements Operation<Bitmap2JpegBytes.In, Packet<byte[]>> {
 
+    @NonNull
     @Override
-    public @NonNull Packet<byte[]> apply(@NonNull In in) throws ImageCaptureException {
+    public Packet<byte[]> apply(@NonNull In in) throws ImageCaptureException {
         Packet<Bitmap> packet = in.getPacket();
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         packet.getData().compress(Bitmap.CompressFormat.JPEG, in.getJpegQuality(), outputStream);
@@ -81,15 +79,16 @@ public class Bitmap2JpegBytes implements Operation<Bitmap2JpegBytes.In, Packet<b
      * Input of {@link Bitmap2JpegBytes} processor.
      */
     @AutoValue
-    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
-    public abstract static class In {
+    abstract static class In {
 
         abstract Packet<Bitmap> getPacket();
 
         abstract int getJpegQuality();
 
-        public static @NonNull In of(@NonNull Packet<Bitmap> imagePacket, int jpegQuality) {
+        @NonNull
+        static In of(@NonNull Packet<Bitmap> imagePacket, int jpegQuality) {
             return new AutoValue_Bitmap2JpegBytes_In(imagePacket, jpegQuality);
         }
     }
 }
+

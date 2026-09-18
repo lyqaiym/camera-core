@@ -19,10 +19,9 @@ package androidx.camera.core.impl.utils;
 import android.os.Build;
 import android.util.CloseGuard;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.core.util.Preconditions;
-
-import org.jspecify.annotations.NonNull;
 
 /**
  * Helper for accessing CloseGuard on API levels that support it.
@@ -41,7 +40,8 @@ public final class CloseGuardHelper {
      * Returns a {@link CloseGuardHelper} which defers to the platform close guard if it is
      * available.
      */
-    public static @NonNull CloseGuardHelper create() {
+    @NonNull
+    public static CloseGuardHelper create() {
         if (Build.VERSION.SDK_INT >= 30) {
             return new CloseGuardHelper(new CloseGuardApi30Impl());
         }

@@ -21,8 +21,9 @@ import static com.google.common.truth.Truth.assertThat;
 import android.os.Build;
 import android.util.Log;
 
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -218,7 +219,7 @@ public class LoggerTest {
         private final List<LogItem> mLogItems;
         private int mIndex = 0;
 
-        LogAssert(final @NonNull List<LogItem> logItems) {
+        LogAssert(@NonNull final List<LogItem> logItems) {
             mLogItems = new ArrayList<>(logItems);
         }
 

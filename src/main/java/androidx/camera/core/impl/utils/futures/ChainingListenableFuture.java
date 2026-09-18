@@ -21,12 +21,11 @@ import static androidx.core.util.Preconditions.checkNotNull;
 
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.camera.core.impl.utils.executor.CameraXExecutors;
 
 import com.google.common.util.concurrent.ListenableFuture;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.concurrent.BlockingQueue;
@@ -52,12 +51,15 @@ import java.util.concurrent.TimeoutException;
  *
  */
 class ChainingListenableFuture<I, O> extends FutureChain<O> implements Runnable {
-    private @Nullable AsyncFunction<? super I, ? extends O> mFunction;
+    @Nullable
+    private AsyncFunction<? super I, ? extends O> mFunction;
     private final BlockingQueue<Boolean> mMayInterruptIfRunningChannel =
             new LinkedBlockingQueue<>(1);
     private final CountDownLatch mOutputCreated = new CountDownLatch(1);
-    private @Nullable ListenableFuture<? extends I> mInputFuture;
-    volatile @Nullable ListenableFuture<? extends O> mOutputFuture;
+    @Nullable
+    private ListenableFuture<? extends I> mInputFuture;
+    @Nullable
+    volatile ListenableFuture<? extends O> mOutputFuture;
 
     ChainingListenableFuture(
             @NonNull AsyncFunction<? super I, ? extends O> function,
@@ -73,7 +75,8 @@ class ChainingListenableFuture<I, O> extends FutureChain<O> implements Runnable 
      * own get() is invoked.
      */
     @Override
-    public @Nullable O get() throws InterruptedException, ExecutionException {
+    @Nullable
+    public O get() throws InterruptedException, ExecutionException {
         if (!isDone()) {
             // Invoking get on the mInputFuture will ensure our own run()
             // method below is invoked as a listener when mInputFuture sets
@@ -108,7 +111,8 @@ class ChainingListenableFuture<I, O> extends FutureChain<O> implements Runnable 
      * own get() is invoked.
      */
     @Override
-    public @Nullable O get(long timeout, @NonNull TimeUnit unit) throws TimeoutException,
+    @Nullable
+    public O get(long timeout, @NonNull TimeUnit unit) throws TimeoutException,
             ExecutionException, InterruptedException {
         if (!isDone()) {
             // Use a single time unit so we can decrease mRemaining timeout

@@ -21,10 +21,9 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.os.Build;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;
 
@@ -35,7 +34,8 @@ public final class ContextUtil {
     /**
      * Gets the application context and preserves the attribution tag and device id.
      */
-    public static @NonNull Context getApplicationContext(@NonNull Context context) {
+    @NonNull
+    public static Context getApplicationContext(@NonNull Context context) {
         Context resultContext  = context.getApplicationContext();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             int deviceIdContext = Api34Impl.getDeviceId(context);
@@ -70,7 +70,8 @@ public final class ContextUtil {
      * will create a non-ContextWrapper instance which could fail to invoke
      * {@link ContextWrapper#getBaseContext()}.
      */
-    public static @Nullable Application getApplicationFromContext(@NonNull Context context) {
+    @Nullable
+    public static Application getApplicationFromContext(@NonNull Context context) {
         Application application = null;
         Context appContext = getApplicationContext(context);
         while (appContext instanceof ContextWrapper) {
@@ -96,12 +97,14 @@ public final class ContextUtil {
         private Api30Impl() {
         }
 
-        static @NonNull Context createAttributionContext(@NonNull Context context,
+        @NonNull
+        static Context createAttributionContext(@NonNull Context context,
                 @Nullable String attributeTag) {
             return context.createAttributionContext(attributeTag);
         }
 
-        static @Nullable String getAttributionTag(@NonNull Context context) {
+        @Nullable
+        static String getAttributionTag(@NonNull Context context) {
             return context.getAttributionTag();
         }
     }
@@ -111,7 +114,8 @@ public final class ContextUtil {
         private Api34Impl() {
         }
 
-        static @NonNull Context createDeviceContext(@NonNull Context context, int deviceId) {
+        @NonNull
+        static Context createDeviceContext(@NonNull Context context, int deviceId) {
             return context.createDeviceContext(deviceId);
         }
 

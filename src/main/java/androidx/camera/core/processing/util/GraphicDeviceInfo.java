@@ -18,11 +18,10 @@ package androidx.camera.core.processing.util;
 
 import static androidx.camera.core.processing.util.GLUtils.VERSION_UNKNOWN;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RestrictTo;
 
 import com.google.auto.value.AutoValue;
-
-import org.jspecify.annotations.NonNull;
 
 /**
  * Information about an initialized graphics device.
@@ -42,7 +41,8 @@ public abstract class GraphicDeviceInfo {
      * <p>Returns {@link GLUtils#VERSION_UNKNOWN} if version information can't be
      * retrieved.
      */
-    public abstract @NonNull String getGlVersion();
+    @NonNull
+    public abstract String getGlVersion();
 
     /**
      * Returns the EGL version this graphics device has been initialized to.
@@ -52,24 +52,28 @@ public abstract class GraphicDeviceInfo {
      * <p>Returns {@link GLUtils#VERSION_UNKNOWN} if version information can't be
      * retrieved.
      */
-    public abstract @NonNull String getEglVersion();
+    @NonNull
+    public abstract String getEglVersion();
 
     /**
      * Returns a space separated list of OpenGL extensions or an empty string if extensions
      * could not be retrieved.
      */
-    public abstract @NonNull String getGlExtensions();
+    @NonNull
+    public abstract String getGlExtensions();
 
     /**
      * Returns a space separated list of EGL extensions or an empty string if extensions
      * could not be retrieved.
      */
-    public abstract @NonNull String getEglExtensions();
+    @NonNull
+    public abstract String getEglExtensions();
 
     /**
      * Returns the Builder.
      */
-    public static @NonNull Builder builder() {
+    @NonNull
+    public static Builder builder() {
         return new AutoValue_GraphicDeviceInfo.Builder()
                 .setGlVersion(VERSION_UNKNOWN)
                 .setEglVersion(VERSION_UNKNOWN)
@@ -89,26 +93,31 @@ public abstract class GraphicDeviceInfo {
         /**
          * Sets the gl version.
          */
-        public abstract @NonNull Builder setGlVersion(@NonNull String version);
+        @NonNull
+        public abstract Builder setGlVersion(@NonNull String version);
 
         /**
          * Sets the egl version.
          */
-        public abstract @NonNull Builder setEglVersion(@NonNull String version);
+        @NonNull
+        public abstract Builder setEglVersion(@NonNull String version);
 
         /**
          * Sets the gl extensions.
          */
-        public abstract @NonNull Builder setGlExtensions(@NonNull String extensions);
+        @NonNull
+        public abstract Builder setGlExtensions(@NonNull String extensions);
 
         /**
          * Sets the egl extensions.
          */
-        public abstract @NonNull Builder setEglExtensions(@NonNull String extensions);
+        @NonNull
+        public abstract Builder setEglExtensions(@NonNull String extensions);
 
         /**
          * Builds the {@link GraphicDeviceInfo}.
          */
-        public abstract @NonNull GraphicDeviceInfo build();
+        @NonNull
+        public abstract GraphicDeviceInfo build();
     }
 }

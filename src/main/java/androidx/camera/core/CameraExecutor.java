@@ -17,11 +17,10 @@
 package androidx.camera.core;
 
 import androidx.annotation.GuardedBy;
+import androidx.annotation.NonNull;
 import androidx.annotation.RestrictTo;
 import androidx.camera.core.impl.CameraFactory;
 import androidx.core.util.Preconditions;
-
-import org.jspecify.annotations.NonNull;
 
 import java.util.Locale;
 import java.util.concurrent.Executor;
@@ -42,7 +41,8 @@ public class CameraExecutor implements Executor {
 
     private final Object mExecutorLock = new Object();
     @GuardedBy("mExecutorLock")
-    private @NonNull ThreadPoolExecutor mThreadPoolExecutor = createExecutor();
+    @NonNull
+    private ThreadPoolExecutor mThreadPoolExecutor = createExecutor();
 
     private static final ThreadFactory THREAD_FACTORY = new ThreadFactory() {
         private static final String THREAD_NAME_STEM =

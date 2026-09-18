@@ -17,8 +17,7 @@
 package androidx.camera.core.impl;
 
 import androidx.annotation.IntDef;
-
-import org.jspecify.annotations.NonNull;
+import androidx.annotation.NonNull;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -58,7 +57,8 @@ public final class CameraMode {
     /**
      * Returns a string representation of the CameraMode integer enum.
      */
-    public static @NonNull String toLabelString(@Mode int mode) {
+    @NonNull
+    public static String toLabelString(@Mode int mode) {
         switch (mode) {
             case CONCURRENT_CAMERA: return "CONCURRENT_CAMERA";
             case ULTRA_HIGH_RESOLUTION_CAMERA: return "ULTRA_HIGH_RESOLUTION_CAMERA";

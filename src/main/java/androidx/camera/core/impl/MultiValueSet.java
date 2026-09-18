@@ -16,7 +16,7 @@
 
 package androidx.camera.core.impl;
 
-import org.jspecify.annotations.NonNull;
+import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -46,7 +46,8 @@ public abstract class MultiValueSet<C> {
     /**
      * Returns the list of {@link C} which containing all the elements were added to this value set.
      */
-    public @NonNull List<C> getAllItems() {
+    @NonNull
+    public List<C> getAllItems() {
         return Collections.unmodifiableList(new ArrayList<>(mSet));
     }
 

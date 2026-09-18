@@ -54,6 +54,8 @@ import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 import androidx.camera.core.DynamicRange;
 import androidx.camera.core.Logger;
@@ -65,9 +67,6 @@ import androidx.camera.core.processing.util.GraphicDeviceInfo;
 import androidx.camera.core.processing.util.OutputSurface;
 import androidx.core.util.Pair;
 import androidx.core.util.Preconditions;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.nio.ByteBuffer;
 import java.util.Collections;
@@ -92,16 +91,26 @@ public class OpenGlRenderer {
 
     protected final AtomicBoolean mInitialized = new AtomicBoolean(false);
     protected final Map<Surface, OutputSurface> mOutputSurfaceMap = new HashMap<>();
-    protected @Nullable Thread mGlThread;
-    protected @NonNull EGLDisplay mEglDisplay = EGL14.EGL_NO_DISPLAY;
-    protected @NonNull EGLContext mEglContext = EGL14.EGL_NO_CONTEXT;
-    protected int @NonNull [] mSurfaceAttrib = EMPTY_ATTRIBS;
-    protected @Nullable EGLConfig mEglConfig;
-    protected @NonNull EGLSurface mTempSurface = EGL14.EGL_NO_SURFACE;
-    protected @Nullable Surface mCurrentSurface;
-    protected @NonNull Map<InputFormat, Program2D> mProgramHandles = Collections.emptyMap();
-    protected @Nullable Program2D mCurrentProgram = null;
-    protected @NonNull InputFormat mCurrentInputformat = InputFormat.UNKNOWN;
+    @Nullable
+    protected Thread mGlThread;
+    @NonNull
+    protected EGLDisplay mEglDisplay = EGL14.EGL_NO_DISPLAY;
+    @NonNull
+    protected EGLContext mEglContext = EGL14.EGL_NO_CONTEXT;
+    @NonNull
+    protected int[] mSurfaceAttrib = EMPTY_ATTRIBS;
+    @Nullable
+    protected EGLConfig mEglConfig;
+    @NonNull
+    protected EGLSurface mTempSurface = EGL14.EGL_NO_SURFACE;
+    @Nullable
+    protected Surface mCurrentSurface;
+    @NonNull
+    protected Map<InputFormat, Program2D> mProgramHandles = Collections.emptyMap();
+    @Nullable
+    protected Program2D mCurrentProgram = null;
+    @NonNull
+    protected InputFormat mCurrentInputformat = InputFormat.UNKNOWN;
 
     private int mExternalTextureId = -1;
 
@@ -111,7 +120,8 @@ public class OpenGlRenderer {
      * <p>This is equivalent to calling {@link #init(DynamicRange, Map)} without providing any
      * shader overrides. Default shaders will be used for the dynamic range specified.
      */
-    public @NonNull GraphicDeviceInfo init(@NonNull DynamicRange dynamicRange) {
+    @NonNull
+    public GraphicDeviceInfo init(@NonNull DynamicRange dynamicRange) {
         return init(dynamicRange, Collections.emptyMap());
     }
 
@@ -132,7 +142,8 @@ public class OpenGlRenderer {
      * @throws IllegalArgumentException if the ShaderProvider fails to create shader or provides
      *                                  invalid shader string.
      */
-    public @NonNull GraphicDeviceInfo init(@NonNull DynamicRange dynamicRange,
+    @NonNull
+    public GraphicDeviceInfo init(@NonNull DynamicRange dynamicRange,
             @NonNull Map<InputFormat, ShaderProvider> shaderOverrides) {
         checkInitializedOrThrow(mInitialized, false);
         GraphicDeviceInfo.Builder infoBuilder = GraphicDeviceInfo.builder();
@@ -254,7 +265,7 @@ public class OpenGlRenderer {
      *                               on the GL thread or the surface is not registered by
      *                               {@link #registerOutputSurface(Surface)}.
      */
-    public void render(long timestampNs, float @NonNull [] textureTransform,
+    public void render(long timestampNs, @NonNull float[] textureTransform,
             @NonNull Surface surface) {
         checkInitializedOrThrow(mInitialized, true);
         checkGlThreadOrThrow(mGlThread);
@@ -308,7 +319,8 @@ public class OpenGlRenderer {
      * @param textureTransform the transformation matrix.
      *                         See: {@link SurfaceOutput#updateTransformMatrix(float[], float[])}
      */
-    public @NonNull Bitmap snapshot(@NonNull Size size, float @NonNull [] textureTransform) {
+    @NonNull
+    public Bitmap snapshot(@NonNull Size size, @NonNull float[] textureTransform) {
         // Allocate buffer.
         ByteBuffer byteBuffer = ByteBuffer.allocateDirect(
                 size.getWidth() * size.getHeight() * PIXEL_STRIDE);
@@ -334,7 +346,7 @@ public class OpenGlRenderer {
      *                         See: {@link SurfaceOutput#updateTransformMatrix(float[], float[])}
      */
     private void snapshot(@NonNull ByteBuffer byteBuffer, @NonNull Size size,
-            float @NonNull [] textureTransform) {
+            @NonNull float[] textureTransform) {
         checkArgument(byteBuffer.capacity() == size.getWidth() * size.getHeight() * 4,
                 "ByteBuffer capacity is not equal to width * height * 4.");
         checkArgument(byteBuffer.isDirect(), "ByteBuffer is not direct.");
@@ -400,7 +412,8 @@ public class OpenGlRenderer {
     }
 
     // Returns a pair of GL extension (first) and EGL extension (second) strings.
-    private @NonNull Pair<String, String> getExtensionsBeforeInitialized(
+    @NonNull
+    private Pair<String, String> getExtensionsBeforeInitialized(
             @NonNull DynamicRange dynamicRangeToInitialize) {
         checkInitializedOrThrow(mInitialized, false);
         try {
@@ -421,7 +434,7 @@ public class OpenGlRenderer {
     }
 
     private void createEglContext(@NonNull DynamicRange dynamicRange,
-            GraphicDeviceInfo.@Nullable Builder infoBuilder) {
+            @Nullable GraphicDeviceInfo.Builder infoBuilder) {
         mEglDisplay = EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY);
         if (Objects.equals(mEglDisplay, EGL14.EGL_NO_DISPLAY)) {
             throw new IllegalStateException("Unable to get EGL14 display");
@@ -556,14 +569,16 @@ public class OpenGlRenderer {
         mGlThread = null;
     }
 
-    protected @NonNull OutputSurface getOutSurfaceOrThrow(@NonNull Surface surface) {
+    @NonNull
+    protected OutputSurface getOutSurfaceOrThrow(@NonNull Surface surface) {
         Preconditions.checkState(mOutputSurfaceMap.containsKey(surface),
                 "The surface is not registered.");
 
         return requireNonNull(mOutputSurfaceMap.get(surface));
     }
 
-    protected @Nullable OutputSurface createOutputSurfaceInternal(@NonNull Surface surface) {
+    @Nullable
+    protected OutputSurface createOutputSurfaceInternal(@NonNull Surface surface) {
         EGLSurface eglSurface;
         try {
             eglSurface = createWindowSurface(mEglDisplay, requireNonNull(mEglConfig), surface,

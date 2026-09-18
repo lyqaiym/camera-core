@@ -16,10 +16,9 @@
 
 package androidx.camera.core.impl;
 
+import androidx.annotation.NonNull;
 import androidx.camera.core.Preview;
 import androidx.camera.core.internal.ThreadConfig;
-
-import org.jspecify.annotations.NonNull;
 
 /**
  * Configuration for a {@link Preview} use case.
@@ -37,8 +36,9 @@ public final class PreviewConfig
         mConfig = config;
     }
 
+    @NonNull
     @Override
-    public @NonNull Config getConfig() {
+    public Config getConfig() {
         return mConfig;
     }
 

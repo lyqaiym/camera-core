@@ -41,7 +41,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
  * @see ImageCapture.takePicture
  * @see ImageCapture.OnImageCapturedCallback
  */
-public suspend fun ImageCapture.takePicture(
+suspend fun ImageCapture.takePicture(
     onCaptureStarted: (() -> Unit)? = null,
     onCaptureProcessProgressed: ((Int) -> Unit)? = null,
     onPostviewBitmapAvailable: ((Bitmap) -> Unit)? = null,
@@ -92,7 +92,7 @@ public suspend fun ImageCapture.takePicture(
  * @see ImageCapture.takePicture
  * @see ImageCapture.OnImageSavedCallback
  */
-public suspend fun ImageCapture.takePicture(
+suspend fun ImageCapture.takePicture(
     outputFileOptions: ImageCapture.OutputFileOptions,
     onCaptureStarted: (() -> Unit)? = null,
     onCaptureProcessProgressed: ((Int) -> Unit)? = null,
@@ -162,7 +162,7 @@ private class DelegatingImageCapturedCallback(delegate: ImageCapture.OnImageCapt
     }
 
     override fun onCaptureSuccess(imageProxy: ImageProxy) {
-        delegate?.onCaptureSuccess(imageProxy) ?: run { imageProxy.close() }
+        delegate?.onCaptureSuccess(imageProxy)
     }
 
     override fun onError(exception: ImageCaptureException) {

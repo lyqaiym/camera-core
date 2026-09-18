@@ -32,6 +32,7 @@ import android.util.Rational;
 import android.util.Size;
 import android.view.Surface;
 
+import androidx.annotation.NonNull;
 import androidx.camera.core.impl.CameraCaptureCallback;
 import androidx.camera.core.impl.CameraCaptureMetaData;
 import androidx.camera.core.impl.CameraControlInternal;
@@ -43,10 +44,9 @@ import androidx.camera.core.impl.utils.executor.CameraXExecutors;
 import androidx.camera.core.internal.CameraUseCaseAdapter;
 import androidx.camera.core.internal.compat.workaround.CaptureFailedRetryEnabler;
 import androidx.camera.testing.fakes.FakeCamera;
-import androidx.camera.testing.fakes.FakeCameraCaptureResult;
 import androidx.camera.testing.fakes.FakeCameraControl;
-import androidx.camera.testing.imagecapture.CaptureResult;
 import androidx.camera.testing.impl.CoreAppTestUtil;
+import androidx.camera.testing.impl.fakes.FakeCameraCaptureResult;
 import androidx.camera.testing.impl.fakes.FakeCameraCoordinator;
 import androidx.camera.testing.impl.fakes.FakeCameraDeviceSurfaceManager;
 import androidx.camera.testing.impl.fakes.FakeUseCaseConfigFactory;
@@ -56,7 +56,6 @@ import androidx.test.filters.MediumTest;
 import androidx.test.filters.SdkSuppress;
 import androidx.test.platform.app.InstrumentationRegistry;
 
-import org.jspecify.annotations.NonNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -127,7 +126,7 @@ public class ImageCaptureTest {
 
         fakeCameraControl.setOnNewCaptureRequestListener(captureConfigs -> {
             // Notify the cancel after the capture request has been successfully submitted
-            fakeCameraControl.completeAllCaptureRequests(CaptureResult.cancelledResult());
+            fakeCameraControl.notifyAllRequestsOnCaptureCancelled();
         });
 
         mInstrumentation.runOnMainSync(
@@ -157,7 +156,7 @@ public class ImageCaptureTest {
                 getCameraControlImplementation(mCameraUseCaseAdapter.getCameraControl());
         fakeCameraControl.setOnNewCaptureRequestListener(captureConfigs -> {
             // Notify the failure after the capture request has been successfully submitted
-            fakeCameraControl.completeAllCaptureRequests(CaptureResult.failedResult());
+            fakeCameraControl.notifyAllRequestsOnCaptureFailed();
         });
 
         mInstrumentation.runOnMainSync(
@@ -305,7 +304,7 @@ public class ImageCaptureTest {
         // Simulates the case that the capture request failed after running in 300 ms.
         fakeCameraControl.setOnNewCaptureRequestListener(captureConfigs -> {
             CameraXExecutors.mainThreadExecutor().schedule(() -> {
-                fakeCameraControl.completeAllCaptureRequests(CaptureResult.failedResult());
+                fakeCameraControl.notifyAllRequestsOnCaptureFailed();
             }, 300, TimeUnit.MILLISECONDS);
         });
 
@@ -358,7 +357,8 @@ public class ImageCaptureTest {
         return (FakeCameraControl) impl;
     }
 
-    private @NonNull List<CaptureConfig> captureImage(@NonNull ImageCapture imageCapture,
+    @NonNull
+    private List<CaptureConfig> captureImage(@NonNull ImageCapture imageCapture,
             @NonNull Class<?> callbackClass) {
         // Arrange.
         mInstrumentation.runOnMainSync(() -> {
@@ -482,7 +482,7 @@ public class ImageCaptureTest {
         CaptureFailedRetryEnabler retryEnabler = new CaptureFailedRetryEnabler();
         // Because of retry in some devices, we may need to notify capture failures multiple times.
         addExtraFailureNotificationsForRetry(fakeCameraControl, retryEnabler.getRetryCount());
-        fakeCameraControl.completeAllCaptureRequests(CaptureResult.failedResult());
+        fakeCameraControl.notifyAllRequestsOnCaptureFailed();
 
         // Assert.
         verify(callback, timeout(1000).times(1)).onError(any());
@@ -494,7 +494,7 @@ public class ImageCaptureTest {
         if (retryCount > 0) {
             cameraControl.setOnNewCaptureRequestListener(captureConfigs -> {
                 addExtraFailureNotificationsForRetry(cameraControl, retryCount - 1);
-                cameraControl.completeAllCaptureRequests(CaptureResult.failedResult());
+                cameraControl.notifyAllRequestsOnCaptureFailed();
             });
         }
     }

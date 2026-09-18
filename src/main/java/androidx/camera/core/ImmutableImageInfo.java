@@ -18,13 +18,12 @@ package androidx.camera.core;
 
 import android.graphics.Matrix;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RestrictTo;
 import androidx.camera.core.impl.TagBundle;
 import androidx.camera.core.impl.utils.ExifData;
 
 import com.google.auto.value.AutoValue;
-
-import org.jspecify.annotations.NonNull;
 
 /**
  */
@@ -35,19 +34,19 @@ public abstract class ImmutableImageInfo implements ImageInfo {
     /**
      * Creates an instance of {@link ImmutableImageInfo}.
      */
-    public static @NonNull ImageInfo create(@NonNull TagBundle tag, long timestamp,
-            int rotationDegrees, @NonNull Matrix sensorToBufferTransformMatrix,
-            @FlashState.FlashState int flashState) {
+    @NonNull
+    public static ImageInfo create(@NonNull TagBundle tag, long timestamp,
+            int rotationDegrees, @NonNull Matrix sensorToBufferTransformMatrix) {
         return new AutoValue_ImmutableImageInfo(
                 tag,
                 timestamp,
                 rotationDegrees,
-                sensorToBufferTransformMatrix,
-                flashState);
+                sensorToBufferTransformMatrix);
     }
 
     @Override
-    public abstract @NonNull TagBundle getTagBundle();
+    @NonNull
+    public abstract TagBundle getTagBundle();
 
     @Override
     public abstract long getTimestamp();
@@ -55,14 +54,12 @@ public abstract class ImmutableImageInfo implements ImageInfo {
     @Override
     public abstract int getRotationDegrees();
 
+    @NonNull
     @Override
-    public abstract @NonNull Matrix getSensorToBufferTransformMatrix();
+    public abstract Matrix getSensorToBufferTransformMatrix();
 
     @Override
-    public abstract @FlashState.FlashState int getFlashState();
-
-    @Override
-    public void populateExifData(ExifData.@NonNull Builder exifBuilder) {
+    public void populateExifData(@NonNull ExifData.Builder exifBuilder) {
         // Only have access to orientation information.
         exifBuilder.setOrientationDegrees(getRotationDegrees());
     }

@@ -18,8 +18,8 @@ package androidx.camera.core.impl;
 
 import android.util.ArrayMap;
 
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.util.Collections;
 import java.util.Map;
@@ -31,7 +31,8 @@ import java.util.TreeMap;
  * A MutableOptionsBundle is an {@link OptionsBundle} which allows for insertion/removal.
  */
 public final class MutableOptionsBundle extends OptionsBundle implements MutableConfig {
-    private static final @NonNull OptionPriority DEFAULT_PRIORITY = OptionPriority.OPTIONAL;
+    @NonNull
+    private static final OptionPriority DEFAULT_PRIORITY = OptionPriority.OPTIONAL;
 
     private MutableOptionsBundle(
             TreeMap<Option<?>, Map<OptionPriority, Object>> persistentOptions) {
@@ -43,7 +44,8 @@ public final class MutableOptionsBundle extends OptionsBundle implements Mutable
      *
      * @return an empty MutableOptionsBundle containing no options.
      */
-    public static @NonNull MutableOptionsBundle create() {
+    @NonNull
+    public static MutableOptionsBundle create() {
         return new MutableOptionsBundle(new TreeMap<>(ID_COMPARE));
     }
 
@@ -53,7 +55,8 @@ public final class MutableOptionsBundle extends OptionsBundle implements Mutable
      * @param otherConfig configuration options to insert.
      * @return a MutableOptionsBundle prepopulated with configuration options.
      */
-    public static @NonNull MutableOptionsBundle from(@NonNull Config otherConfig) {
+    @NonNull
+    public static MutableOptionsBundle from(@NonNull Config otherConfig) {
         TreeMap<Option<?>, Map<OptionPriority, Object>> persistentOptions =
                 new TreeMap<>(ID_COMPARE);
         for (Option<?> opt : otherConfig.listOptions()) {
@@ -68,8 +71,9 @@ public final class MutableOptionsBundle extends OptionsBundle implements Mutable
         return new MutableOptionsBundle(persistentOptions);
     }
 
+    @Nullable
     @Override
-    public <ValueT> @Nullable ValueT removeOption(@NonNull Option<ValueT> opt) {
+    public <ValueT> ValueT removeOption(@NonNull Option<ValueT> opt) {
         @SuppressWarnings("unchecked") // Options should have only been inserted via insertOption()
                 ValueT value = (ValueT) mOptions.remove(opt);
 

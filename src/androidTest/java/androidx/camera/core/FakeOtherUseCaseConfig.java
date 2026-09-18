@@ -16,6 +16,7 @@
 
 package androidx.camera.core;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RestrictTo;
 import androidx.camera.core.impl.CaptureConfig;
 import androidx.camera.core.impl.Config;
@@ -26,8 +27,6 @@ import androidx.camera.core.impl.OptionsBundle;
 import androidx.camera.core.impl.SessionConfig;
 import androidx.camera.core.impl.UseCaseConfig;
 import androidx.camera.core.impl.UseCaseConfigFactory;
-
-import org.jspecify.annotations.NonNull;
 
 import java.util.UUID;
 
@@ -40,8 +39,9 @@ public class FakeOtherUseCaseConfig implements UseCaseConfig<FakeOtherUseCase> {
         mConfig = config;
     }
 
+    @NonNull
     @Override
-    public @NonNull Config getConfig() {
+    public Config getConfig() {
         return mConfig;
     }
 
@@ -55,8 +55,9 @@ public class FakeOtherUseCaseConfig implements UseCaseConfig<FakeOtherUseCase> {
         return retrieveOption(OPTION_SURFACE_OCCUPANCY_PRIORITY);
     }
 
+    @NonNull
     @Override
-    public UseCaseConfigFactory.@NonNull CaptureType getCaptureType() {
+    public UseCaseConfigFactory.CaptureType getCaptureType() {
         return UseCaseConfigFactory.CaptureType.PREVIEW;
     }
 
@@ -78,17 +79,20 @@ public class FakeOtherUseCaseConfig implements UseCaseConfig<FakeOtherUseCase> {
         }
 
         @Override
-        public @NonNull MutableConfig getMutableConfig() {
+        @NonNull
+        public MutableConfig getMutableConfig() {
             return mOptionsBundle;
         }
 
+        @NonNull
         @Override
-        public @NonNull FakeOtherUseCaseConfig getUseCaseConfig() {
+        public FakeOtherUseCaseConfig getUseCaseConfig() {
             return new FakeOtherUseCaseConfig(OptionsBundle.from(mOptionsBundle));
         }
 
         @Override
-        public @NonNull FakeOtherUseCase build() {
+        @NonNull
+        public FakeOtherUseCase build() {
             return new FakeOtherUseCase(getUseCaseConfig());
         }
 
@@ -96,7 +100,8 @@ public class FakeOtherUseCaseConfig implements UseCaseConfig<FakeOtherUseCase> {
 
         @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
         @Override
-        public @NonNull Builder setTargetClass(@NonNull Class<FakeOtherUseCase> targetClass) {
+        @NonNull
+        public Builder setTargetClass(@NonNull Class<FakeOtherUseCase> targetClass) {
             getMutableConfig().insertOption(OPTION_TARGET_CLASS, targetClass);
 
             // If no name is set yet, then generate a unique name
@@ -109,7 +114,8 @@ public class FakeOtherUseCaseConfig implements UseCaseConfig<FakeOtherUseCase> {
         }
 
         @Override
-        public @NonNull Builder setTargetName(@NonNull String targetName) {
+        @NonNull
+        public Builder setTargetName(@NonNull String targetName) {
             getMutableConfig().insertOption(OPTION_TARGET_NAME, targetName);
             return this;
         }
@@ -118,58 +124,65 @@ public class FakeOtherUseCaseConfig implements UseCaseConfig<FakeOtherUseCase> {
 
         @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
         @Override
-        public @NonNull Builder setDefaultSessionConfig(@NonNull SessionConfig sessionConfig) {
+        @NonNull
+        public Builder setDefaultSessionConfig(@NonNull SessionConfig sessionConfig) {
             getMutableConfig().insertOption(OPTION_DEFAULT_SESSION_CONFIG, sessionConfig);
             return this;
         }
 
         @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
         @Override
-        public @NonNull Builder setDefaultCaptureConfig(@NonNull CaptureConfig captureConfig) {
+        @NonNull
+        public Builder setDefaultCaptureConfig(@NonNull CaptureConfig captureConfig) {
             getMutableConfig().insertOption(OPTION_DEFAULT_CAPTURE_CONFIG, captureConfig);
             return this;
         }
 
         @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
         @Override
-        public @NonNull Builder setSessionOptionUnpacker(
-                SessionConfig.@NonNull OptionUnpacker optionUnpacker) {
+        @NonNull
+        public Builder setSessionOptionUnpacker(
+                @NonNull SessionConfig.OptionUnpacker optionUnpacker) {
             getMutableConfig().insertOption(OPTION_SESSION_CONFIG_UNPACKER, optionUnpacker);
             return this;
         }
 
         @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
         @Override
-        public @NonNull Builder setCaptureOptionUnpacker(
-                CaptureConfig.@NonNull OptionUnpacker optionUnpacker) {
+        @NonNull
+        public Builder setCaptureOptionUnpacker(
+                @NonNull CaptureConfig.OptionUnpacker optionUnpacker) {
             getMutableConfig().insertOption(OPTION_CAPTURE_CONFIG_UNPACKER, optionUnpacker);
             return this;
         }
 
         @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
         @Override
-        public @NonNull Builder setSurfaceOccupancyPriority(int priority) {
+        @NonNull
+        public Builder setSurfaceOccupancyPriority(int priority) {
             getMutableConfig().insertOption(OPTION_SURFACE_OCCUPANCY_PRIORITY, priority);
             return this;
         }
 
         @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
+        @NonNull
         @Override
-        public @NonNull Builder setZslDisabled(boolean disabled) {
+        public Builder setZslDisabled(boolean disabled) {
             getMutableConfig().insertOption(OPTION_ZSL_DISABLED, disabled);
             return this;
         }
 
         @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
+        @NonNull
         @Override
-        public @NonNull Builder setHighResolutionDisabled(boolean disabled) {
+        public Builder setHighResolutionDisabled(boolean disabled) {
             getMutableConfig().insertOption(OPTION_HIGH_RESOLUTION_DISABLED, disabled);
             return this;
         }
 
+        @NonNull
         @Override
-        public @NonNull Builder setCaptureType(
-                UseCaseConfigFactory.@NonNull CaptureType captureType) {
+        public Builder setCaptureType(@NonNull UseCaseConfigFactory.CaptureType captureType) {
             getMutableConfig().insertOption(OPTION_CAPTURE_TYPE, captureType);
             return this;
         }

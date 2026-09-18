@@ -24,6 +24,7 @@ import static org.mockito.Mockito.verify;
 
 import android.view.Surface;
 
+import androidx.annotation.NonNull;
 import androidx.camera.core.impl.utils.executor.CameraXExecutors;
 import androidx.camera.core.impl.utils.futures.FutureCallback;
 import androidx.camera.core.impl.utils.futures.Futures;
@@ -36,7 +37,6 @@ import androidx.test.filters.SmallTest;
 
 import com.google.common.util.concurrent.ListenableFuture;
 
-import org.jspecify.annotations.NonNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -104,8 +104,9 @@ public class DeferrableSurfacesTest {
     public void surfaceListWithTimeout_cancelReturnedFutureWontCancelDeferrableSurfaces() {
         DeferrableSurface deferrableSurface = new DeferrableSurface() {
             private final ListenableFuture<Surface> mSurfaceFuture = ResolvableFuture.create();
+            @NonNull
             @Override
-            protected @NonNull ListenableFuture<Surface> provideSurface() {
+            protected ListenableFuture<Surface> provideSurface() {
                 // Return a never complete future.
                 return mSurfaceFuture;
             }
@@ -190,7 +191,8 @@ public class DeferrableSurfacesTest {
     /**
      * Return a {@link ListenableFuture} which will never complete.
      */
-    private @NonNull ListenableFuture<Surface> getFakeProcessingListenableFuture() {
+    @NonNull
+    private ListenableFuture<Surface> getFakeProcessingListenableFuture() {
         return CallbackToFutureAdapter.getFuture(completer -> {
             // Only keep the completer instance to avoid the garbage collection and not set the
             // completer to keep the ListenableFuture unfinished.
@@ -199,10 +201,12 @@ public class DeferrableSurfacesTest {
         });
     }
 
-    private @NonNull DeferrableSurface getFakeDeferrableSurface() {
+    @NonNull
+    private DeferrableSurface getFakeDeferrableSurface() {
         DeferrableSurface surface = new DeferrableSurface() {
             @Override
-            public @NonNull ListenableFuture<Surface> provideSurface() {
+            @NonNull
+            public ListenableFuture<Surface> provideSurface() {
                 return getFakeProcessingListenableFuture();
             }
         };

@@ -17,9 +17,8 @@
 package androidx.camera.core.internal.utils;
 
 import androidx.annotation.GuardedBy;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.util.ArrayDeque;
 
@@ -39,7 +38,7 @@ public class ArrayRingBuffer<T> implements RingBuffer<T> {
 
     private final Object mLock = new Object();
 
-    final @Nullable OnRemoveCallback<T> mOnRemoveCallback;
+    @Nullable final OnRemoveCallback<T> mOnRemoveCallback;
 
     public ArrayRingBuffer(int ringBufferCapacity) {
         this(ringBufferCapacity, null);

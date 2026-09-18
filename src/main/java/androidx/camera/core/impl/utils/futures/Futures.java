@@ -18,15 +18,14 @@ package androidx.camera.core.impl.utils.futures;
 
 import static androidx.core.util.Preconditions.checkNotNull;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.arch.core.util.Function;
 import androidx.camera.core.impl.utils.executor.CameraXExecutors;
 import androidx.concurrent.futures.CallbackToFutureAdapter;
 import androidx.core.util.Preconditions;
 
 import com.google.common.util.concurrent.ListenableFuture;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -52,7 +51,8 @@ public final class Futures {
      * @param <V>   The type of the result.
      * @return A future which immediately contains the result.
      */
-    public static <V> @NonNull ListenableFuture<V> immediateFuture(@Nullable V value) {
+    @NonNull
+    public static <V> ListenableFuture<V> immediateFuture(@Nullable V value) {
         if (value == null) {
             return ImmediateFuture.nullFuture();
         }
@@ -69,7 +69,8 @@ public final class Futures {
      * @param <V>   The type of the result.
      * @return A future which immediately contains an exception.
      */
-    public static <V> @NonNull ListenableFuture<V> immediateFailedFuture(@NonNull Throwable cause) {
+    @NonNull
+    public static <V> ListenableFuture<V> immediateFailedFuture(@NonNull Throwable cause) {
         return new ImmediateFuture.ImmediateFailedFuture<>(cause);
     }
 
@@ -82,8 +83,8 @@ public final class Futures {
      * @param <V>   The type of the result.
      * @return A future which immediately contains an exception.
      */
-    public static <V> @NonNull ScheduledFuture<V> immediateFailedScheduledFuture(
-            @NonNull Throwable cause) {
+    @NonNull
+    public static <V> ScheduledFuture<V> immediateFailedScheduledFuture(@NonNull Throwable cause) {
         return new ImmediateFuture.ImmediateFailedScheduledFuture<>(cause);
     }
 
@@ -99,7 +100,8 @@ public final class Futures {
      * @return A future that holds result of the function (if the input succeeded) or the original
      * input's failure (if not)
      */
-    public static <I, O> @NonNull ListenableFuture<O> transformAsync(
+    @NonNull
+    public static <I, O> ListenableFuture<O> transformAsync(
             @NonNull ListenableFuture<I> input,
             @NonNull AsyncFunction<? super I, ? extends O> function,
             @NonNull Executor executor) {
@@ -119,15 +121,17 @@ public final class Futures {
      * @param executor Executor to run the function in.
      * @return A future that holds result of the transformation.
      */
-    public static <I, O> @NonNull ListenableFuture<O> transform(
+    @NonNull
+    public static <I, O> ListenableFuture<O> transform(
             @NonNull ListenableFuture<I> input,
             @NonNull Function<? super I, ? extends O> function,
             @NonNull Executor executor) {
         checkNotNull(function);
         return transformAsync(input, new AsyncFunction<I, O>() {
 
+            @NonNull
             @Override
-            public @NonNull ListenableFuture<O> apply(I input) {
+            public ListenableFuture<O> apply(I input) {
                 return immediateFuture(function.apply(input));
             }
         }, executor);
@@ -152,7 +156,7 @@ public final class Futures {
     @SuppressWarnings("LambdaLast") // ListenableFuture not needed for SAM conversion
     public static <V> void propagate(
             @NonNull ListenableFuture<V> input,
-            final CallbackToFutureAdapter.@NonNull Completer<V> completer) {
+            @NonNull final CallbackToFutureAdapter.Completer<V> completer) {
         @SuppressWarnings({"unchecked"}) // Input of function is same as output
                 Function<? super V, ? extends V> identityTransform =
                 (Function<? super V, ? extends V>) IDENTITY_FUNCTION;
@@ -174,9 +178,9 @@ public final class Futures {
      * @param executor  Executor to run the function in.
      */
     public static <I, O> void propagateTransform(
-            final @NonNull ListenableFuture<I> input,
-            final @NonNull Function<? super I, ? extends O> function,
-            final CallbackToFutureAdapter.@NonNull Completer<O> completer,
+            @NonNull final ListenableFuture<I> input,
+            @NonNull final Function<? super I, ? extends O> function,
+            @NonNull final CallbackToFutureAdapter.Completer<O> completer,
             @NonNull Executor executor) {
         propagateTransform(true, input, function, completer, executor);
     }
@@ -199,9 +203,9 @@ public final class Futures {
      */
     private static <I, O> void propagateTransform(
             boolean propagateCancellation,
-            final @NonNull ListenableFuture<I> input,
-            final @NonNull Function<? super I, ? extends O> function,
-            final CallbackToFutureAdapter.@NonNull Completer<O> completer,
+            @NonNull final ListenableFuture<I> input,
+            @NonNull final Function<? super I, ? extends O> function,
+            @NonNull final CallbackToFutureAdapter.Completer<O> completer,
             @NonNull Executor executor) {
         Preconditions.checkNotNull(input);
         Preconditions.checkNotNull(function);
@@ -242,7 +246,8 @@ public final class Futures {
      * <p>Cancelling the supplied future will also cancel the returned future, but
      * cancelling the returned future will have no effect on the supplied future.
      */
-    public static <V> @NonNull ListenableFuture<V> nonCancellationPropagating(
+    @NonNull
+    public static <V> ListenableFuture<V> nonCancellationPropagating(
             @NonNull ListenableFuture<V> future) {
         Preconditions.checkNotNull(future);
 
@@ -274,7 +279,8 @@ public final class Futures {
      * @param futures futures to combine
      * @return a future that provides a list of the results of the component futures
      */
-    public static <V> @NonNull ListenableFuture<List<V>> successfulAsList(
+    @NonNull
+    public static <V> ListenableFuture<List<V>> successfulAsList(
             @NonNull Collection<? extends ListenableFuture<? extends V>> futures) {
         return new ListFuture<V>(new ArrayList<>(futures), false,
                 CameraXExecutors.directExecutor());
@@ -292,7 +298,8 @@ public final class Futures {
      * @param futures futures to combine
      * @return a future that provides a list of the results of the component futures
      */
-    public static <V> @NonNull ListenableFuture<List<V>> allAsList(
+    @NonNull
+    public static <V> ListenableFuture<List<V>> allAsList(
             @NonNull Collection<? extends ListenableFuture<? extends V>> futures) {
         return new ListFuture<V>(new ArrayList<>(futures), true, CameraXExecutors.directExecutor());
     }
@@ -307,8 +314,8 @@ public final class Futures {
      * @param executor The executor to run {@code callback} when the future completes.
      */
     public static <V> void addCallback(
-            final @NonNull ListenableFuture<V> future,
-            final @NonNull FutureCallback<? super V> callback,
+            @NonNull final ListenableFuture<V> future,
+            @NonNull final FutureCallback<? super V> callback,
             @NonNull Executor executor) {
         Preconditions.checkNotNull(callback);
         future.addListener(new CallbackListener<V>(future, callback), executor);
@@ -346,8 +353,9 @@ public final class Futures {
             mCallback.onSuccess(value);
         }
 
+        @NonNull
         @Override
-        public @NonNull String toString() {
+        public String toString() {
             return getClass().getSimpleName() + "," + mCallback;
         }
     }
@@ -363,7 +371,8 @@ public final class Futures {
      * @throws CancellationException if the {@code Future} was cancelled
      * @throws IllegalStateException if the {@code Future} is not done
      */
-    public static <V> @Nullable V getDone(@NonNull Future<V> future) throws ExecutionException {
+    @Nullable
+    public static <V> V getDone(@NonNull Future<V> future) throws ExecutionException {
         /*
          * We throw IllegalStateException, since the call could succeed later. Perhaps we
          * "should" throw IllegalArgumentException, since the call could succeed with a different
@@ -385,8 +394,8 @@ public final class Futures {
      * @throws ExecutionException    if the computation threw an exception
      * @throws CancellationException if the computation was cancelled
      */
-    public static <V> @Nullable V getUninterruptibly(@NonNull Future<V> future)
-            throws ExecutionException {
+    @Nullable
+    public static <V> V getUninterruptibly(@NonNull Future<V> future) throws ExecutionException {
         boolean interrupted = false;
         try {
             while (true) {
@@ -416,7 +425,8 @@ public final class Futures {
      * @param scheduledExecutor The executor service to enforce the timeout.
      * @param input             The future to delegate to.
      */
-    public static <V> @NonNull ListenableFuture<V> makeTimeoutFuture(
+    @NonNull
+    public static <V> ListenableFuture<V> makeTimeoutFuture(
             long timeoutMillis,
             @NonNull ScheduledExecutorService scheduledExecutor,
             @NonNull ListenableFuture<V> input) {
@@ -445,7 +455,8 @@ public final class Futures {
      * @param cancelInputAtTimeout If true, the input future will be canceled at timeout.
      * @param input                The future to delegate to.
      */
-    public static <V> @NonNull ListenableFuture<V> makeTimeoutFuture(
+    @NonNull
+    public static <V> ListenableFuture<V> makeTimeoutFuture(
             long timeoutMillis,
             @NonNull ScheduledExecutorService scheduledExecutor,
             @Nullable V defaultValue,
@@ -478,7 +489,8 @@ public final class Futures {
      * @param <V> The type of the result within the input future (not used in the returned future).
      * @return A ListenableFuture that completes when the {@code input} future completes.
      */
-    public static <V> @NonNull ListenableFuture<Void> transformAsyncOnCompletion(
+    @NonNull
+    public static <V> ListenableFuture<Void> transformAsyncOnCompletion(
             @NonNull ListenableFuture<V> input) {
         return CallbackToFutureAdapter.getFuture(completer -> {
             input.addListener(() -> completer.set(null), CameraXExecutors.directExecutor());

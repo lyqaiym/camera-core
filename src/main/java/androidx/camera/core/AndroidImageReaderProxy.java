@@ -21,11 +21,10 @@ import android.media.ImageReader;
 import android.view.Surface;
 
 import androidx.annotation.GuardedBy;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.camera.core.impl.ImageReaderProxy;
 import androidx.camera.core.impl.utils.MainThreadAsyncHandler;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.util.concurrent.Executor;
 
@@ -54,7 +53,8 @@ class AndroidImageReaderProxy implements ImageReaderProxy {
     }
 
     @Override
-    public @Nullable ImageProxy acquireLatestImage() {
+    @Nullable
+    public ImageProxy acquireLatestImage() {
         synchronized (mLock) {
             Image image;
             try {
@@ -78,7 +78,8 @@ class AndroidImageReaderProxy implements ImageReaderProxy {
     }
 
     @Override
-    public @Nullable ImageProxy acquireNextImage() {
+    @Nullable
+    public ImageProxy acquireNextImage() {
         synchronized (mLock) {
             Image image;
             try {
@@ -140,8 +141,9 @@ class AndroidImageReaderProxy implements ImageReaderProxy {
         }
     }
 
+    @Nullable
     @Override
-    public @Nullable Surface getSurface() {
+    public Surface getSurface() {
         synchronized (mLock) {
             return mImageReader.getSurface();
         }

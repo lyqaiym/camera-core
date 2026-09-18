@@ -18,12 +18,11 @@ package androidx.camera.core;
 
 import androidx.annotation.IntDef;
 import androidx.annotation.IntRange;
+import androidx.annotation.NonNull;
 import androidx.annotation.RestrictTo;
 import androidx.core.util.Preconditions;
 
 import com.google.common.util.concurrent.ListenableFuture;
-
-import org.jspecify.annotations.NonNull;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -88,11 +87,7 @@ public final class FocusMeteringAction {
 
     @MeteringMode
     static final int DEFAULT_METERING_MODE = FLAG_AF | FLAG_AE | FLAG_AWB;
-
-    /** The default duration for auto-cancelling a focus-metering action. */
-    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
-    public static final long DEFAULT_AUTO_CANCEL_DURATION_MILLIS = 5000;
-
+    static final long DEFAULT_AUTOCANCEL_DURATION = 5000;
     private final List<MeteringPoint> mMeteringPointsAf;
     private final List<MeteringPoint> mMeteringPointsAe;
     private final List<MeteringPoint> mMeteringPointsAwb;
@@ -116,21 +111,24 @@ public final class FocusMeteringAction {
     /**
      * Returns all {@link MeteringPoint}s used for AF regions.
      */
-    public @NonNull List<MeteringPoint> getMeteringPointsAf() {
+    @NonNull
+    public List<MeteringPoint> getMeteringPointsAf() {
         return mMeteringPointsAf;
     }
 
     /**
      * Returns all {@link MeteringPoint}s used for AE regions.
      */
-    public @NonNull List<MeteringPoint> getMeteringPointsAe() {
+    @NonNull
+    public List<MeteringPoint> getMeteringPointsAe() {
         return mMeteringPointsAe;
     }
 
     /**
      * Returns all {@link MeteringPoint}s used for AWB regions.
      */
-    public @NonNull List<MeteringPoint> getMeteringPointsAwb() {
+    @NonNull
+    public List<MeteringPoint> getMeteringPointsAwb() {
         return mMeteringPointsAwb;
     }
 
@@ -163,7 +161,7 @@ public final class FocusMeteringAction {
         @SuppressWarnings("WeakerAccess") /* synthetic accessor */
         final List<MeteringPoint> mMeteringPointsAwb = new ArrayList<>();
         @SuppressWarnings("WeakerAccess") /* synthetic accessor */
-                long mAutoCancelDurationInMillis = DEFAULT_AUTO_CANCEL_DURATION_MILLIS;
+                long mAutoCancelDurationInMillis = DEFAULT_AUTOCANCEL_DURATION;
 
         /**
          * Creates a Builder from a {@link MeteringPoint} with default mode {@link #FLAG_AF} |
@@ -213,7 +211,8 @@ public final class FocusMeteringAction {
          *
          * @see CameraControl#startFocusAndMetering(FocusMeteringAction)
          */
-        public @NonNull Builder addPoint(@NonNull MeteringPoint point) {
+        @NonNull
+        public Builder addPoint(@NonNull MeteringPoint point) {
             return addPoint(point, DEFAULT_METERING_MODE);
         }
 
@@ -238,8 +237,8 @@ public final class FocusMeteringAction {
          *
          * @see CameraControl#startFocusAndMetering(FocusMeteringAction)
          */
-        public @NonNull Builder addPoint(@NonNull MeteringPoint point,
-                @MeteringMode int meteringMode) {
+        @NonNull
+        public Builder addPoint(@NonNull MeteringPoint point, @MeteringMode int meteringMode) {
             Preconditions.checkArgument(point != null, "Point cannot be null.");
             Preconditions.checkArgument(
                     (meteringMode >= FLAG_AF) && (meteringMode <= (FLAG_AF | FLAG_AE | FLAG_AWB)),
@@ -263,7 +262,8 @@ public final class FocusMeteringAction {
          * seconds duration. The duration must be greater than or equal to 1 otherwise it
          * will throw a {@link IllegalArgumentException}.
          */
-        public @NonNull Builder setAutoCancelDuration(@IntRange(from = 1) long duration,
+        @NonNull
+        public Builder setAutoCancelDuration(@IntRange(from = 1) long duration,
                 @NonNull TimeUnit timeUnit) {
             Preconditions.checkArgument(duration >= 1, "autoCancelDuration must be at least 1");
             mAutoCancelDurationInMillis = timeUnit.toMillis(duration);
@@ -273,7 +273,8 @@ public final class FocusMeteringAction {
         /**
          * Disables the auto-cancel.
          */
-        public @NonNull Builder disableAutoCancel() {
+        @NonNull
+        public Builder disableAutoCancel() {
             mAutoCancelDurationInMillis = 0;
             return this;
         }
@@ -283,7 +284,8 @@ public final class FocusMeteringAction {
          * Remove all points of the given meteringMode.
          */
         @RestrictTo(RestrictTo.Scope.LIBRARY)
-        public @NonNull Builder removePoints(@MeteringMode int meteringMode) {
+        @NonNull
+        public Builder removePoints(@MeteringMode int meteringMode) {
             if ((meteringMode & FLAG_AF) != 0) {
                 mMeteringPointsAf.clear();
             }
@@ -301,7 +303,8 @@ public final class FocusMeteringAction {
         /**
          * Builds the {@link FocusMeteringAction} instance.
          */
-        public @NonNull FocusMeteringAction build() {
+        @NonNull
+        public FocusMeteringAction build() {
             return new FocusMeteringAction(this);
         }
 

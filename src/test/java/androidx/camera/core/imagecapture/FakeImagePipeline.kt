@@ -16,7 +16,6 @@
 
 package androidx.camera.core.imagecapture
 
-import android.hardware.camera2.CameraCharacteristics
 import android.util.Size
 import androidx.annotation.MainThread
 import androidx.camera.core.ImageCaptureException
@@ -26,14 +25,10 @@ import androidx.camera.core.impl.CaptureConfig
 import androidx.camera.core.impl.ImageCaptureConfig
 import androidx.core.util.Pair
 import com.google.common.util.concurrent.ListenableFuture
-import org.mockito.Mockito.mock
 
 /** Fake [ImagePipeline] class for testing. */
-class FakeImagePipeline(
-    config: ImageCaptureConfig,
-    cameraSurfaceSize: Size,
-    cameraCharacteristics: CameraCharacteristics
-) : ImagePipeline(config, cameraSurfaceSize, cameraCharacteristics) {
+class FakeImagePipeline(config: ImageCaptureConfig, cameraSurfaceSize: Size) :
+    ImagePipeline(config, cameraSurfaceSize) {
 
     private var currentProcessingRequest: ProcessingRequest? = null
     private var receivedProcessingRequest: MutableSet<ProcessingRequest> = mutableSetOf()
@@ -48,12 +43,7 @@ class FakeImagePipeline(
         var sNextRequestId = 0
     }
 
-    constructor() :
-        this(
-            createEmptyImageCaptureConfig(),
-            Size(640, 480),
-            mock(CameraCharacteristics::class.java)
-        )
+    constructor() : this(createEmptyImageCaptureConfig(), Size(640, 480))
 
     @MainThread
     internal override fun createRequests(

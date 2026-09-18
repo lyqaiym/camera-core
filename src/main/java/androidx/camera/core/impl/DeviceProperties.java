@@ -18,9 +18,9 @@ package androidx.camera.core.impl;
 
 import android.os.Build;
 
-import com.google.auto.value.AutoValue;
+import androidx.annotation.NonNull;
 
-import org.jspecify.annotations.NonNull;
+import com.google.auto.value.AutoValue;
 
 /**
  * Container of the device properties.
@@ -28,21 +28,25 @@ import org.jspecify.annotations.NonNull;
 @AutoValue
 public abstract class DeviceProperties {
     /** Creates an instance by querying the properties from {@link android.os.Build}. */
-    public static @NonNull DeviceProperties create() {
+    @NonNull
+    public static DeviceProperties create() {
         return create(Build.MANUFACTURER, Build.MODEL, Build.VERSION.SDK_INT);
     }
 
     /** Creates an instance from the given properties. */
-    public static @NonNull DeviceProperties create(@NonNull String manufacturer,
-            @NonNull String model, int sdkVersion) {
+    @NonNull
+    public static DeviceProperties create(@NonNull String manufacturer, @NonNull String model,
+            int sdkVersion) {
         return new AutoValue_DeviceProperties(manufacturer, model, sdkVersion);
     }
 
     /** Returns the manufacturer of the device. */
-    public abstract @NonNull String manufacturer();
+    @NonNull
+    public abstract String manufacturer();
 
     /** Returns the model of the device. */
-    public abstract @NonNull String model();
+    @NonNull
+    public abstract String model();
 
     /** Returns the SDK version of the OS running on the device. */
     public abstract int sdkVersion();

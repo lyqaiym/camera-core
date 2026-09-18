@@ -16,10 +16,10 @@
 
 package androidx.camera.core.impl.utils.futures;
 
-import com.google.common.util.concurrent.ListenableFuture;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
+import com.google.common.util.concurrent.ListenableFuture;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;

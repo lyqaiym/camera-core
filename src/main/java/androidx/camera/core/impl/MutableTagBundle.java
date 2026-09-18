@@ -18,7 +18,7 @@ package androidx.camera.core.impl;
 
 import android.util.ArrayMap;
 
-import org.jspecify.annotations.NonNull;
+import androidx.annotation.NonNull;
 
 import java.util.Map;
 
@@ -36,7 +36,8 @@ public class MutableTagBundle extends TagBundle {
      *
      * @return an empty MutableTagBundle containing no tag.
      */
-    public static @NonNull MutableTagBundle create() {
+    @NonNull
+    public static MutableTagBundle create() {
         return new MutableTagBundle(new ArrayMap<>());
     }
 
@@ -46,7 +47,8 @@ public class MutableTagBundle extends TagBundle {
      * @param otherTagBundle TagBundle to insert.
      * @return a MutableTagBundle prepopulated with TagBundle.
      */
-    public static @NonNull MutableTagBundle from(@NonNull TagBundle otherTagBundle) {
+    @NonNull
+    public static MutableTagBundle from(@NonNull TagBundle otherTagBundle) {
         Map<String, Object> tags = new ArrayMap<>();
         for (String key : otherTagBundle.listKeys()) {
             tags.put(key, otherTagBundle.getTag(key));

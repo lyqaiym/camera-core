@@ -16,11 +16,10 @@
 
 package androidx.camera.core.internal;
 
+import androidx.annotation.NonNull;
 import androidx.camera.core.ZoomState;
 
 import com.google.auto.value.AutoValue;
-
-import org.jspecify.annotations.NonNull;
 
 /**
  * An implementation of {@link ZoomState} that is immutable.
@@ -28,13 +27,15 @@ import org.jspecify.annotations.NonNull;
 @AutoValue
 public abstract class ImmutableZoomState implements ZoomState {
     /** Create an immutable instance of {@link ZoomState}. */
-    public static @NonNull ZoomState create(float zoomRatio, float maxZoomRatio, float minZoomRatio,
+    @NonNull
+    public static ZoomState create(float zoomRatio, float maxZoomRatio, float minZoomRatio,
             float linearZoom) {
         return new AutoValue_ImmutableZoomState(zoomRatio, maxZoomRatio, minZoomRatio, linearZoom);
     }
 
     /** Create an immutable instance of {@link ZoomState}. */
-    public static @NonNull ZoomState create(@NonNull ZoomState zoomState) {
+    @NonNull
+    public static ZoomState create(@NonNull ZoomState zoomState) {
         return new AutoValue_ImmutableZoomState(zoomState.getZoomRatio(),
                 zoomState.getMaxZoomRatio(),
                 zoomState.getMinZoomRatio(), zoomState.getLinearZoom());

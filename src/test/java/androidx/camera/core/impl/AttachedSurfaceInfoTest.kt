@@ -20,7 +20,6 @@ import android.os.Build
 import android.util.Range
 import android.util.Size
 import androidx.camera.core.DynamicRange
-import androidx.camera.core.impl.StreamSpec.FRAME_RATE_RANGE_UNSPECIFIED
 import androidx.camera.core.impl.UseCaseConfigFactory.CaptureType
 import androidx.camera.testing.impl.fakes.FakeUseCaseConfig
 import com.google.common.truth.Truth
@@ -57,8 +56,7 @@ class AttachedSurfaceInfoTest {
                 dynamicRange,
                 captureTypes,
                 config,
-                targetFramerate,
-                FRAME_RATE_RANGE_UNSPECIFIED
+                targetFramerate
             )
     }
 
@@ -127,8 +125,7 @@ class AttachedSurfaceInfoTest {
                 dynamicRange,
                 listOf(CaptureType.PREVIEW),
                 config,
-                null,
-                FRAME_RATE_RANGE_UNSPECIFIED
+                null
             )
         Truth.assertThat(attachedSurfaceInfo2.targetFrameRate).isNull()
     }

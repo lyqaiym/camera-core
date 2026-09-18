@@ -18,11 +18,10 @@ package androidx.camera.core.processing.util;
 
 import android.opengl.EGLSurface;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RestrictTo;
 
 import com.google.auto.value.AutoValue;
-
-import org.jspecify.annotations.NonNull;
 
 /**
  * Wrapper for output {@link EGLSurface} in {@link androidx.camera.core.processing.OpenGlRenderer}.
@@ -34,14 +33,16 @@ public abstract class OutputSurface {
     /**
      * Creates {@link OutputSurface}.
      */
-    public static @NonNull OutputSurface of(@NonNull EGLSurface eglSurface, int width, int height) {
+    @NonNull
+    public static OutputSurface of(@NonNull EGLSurface eglSurface, int width, int height) {
         return new AutoValue_OutputSurface(eglSurface, width, height);
     }
 
     /**
      * Gets {@link EGLSurface}.
      */
-    public abstract @NonNull EGLSurface getEglSurface();
+    @NonNull
+    public abstract EGLSurface getEglSurface();
 
     /**
      * Gets {@link EGLSurface} width.

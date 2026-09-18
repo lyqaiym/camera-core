@@ -19,9 +19,9 @@ package androidx.camera.core.impl;
 import android.util.Size;
 import android.view.Surface;
 
-import com.google.auto.value.AutoValue;
+import androidx.annotation.NonNull;
 
-import org.jspecify.annotations.NonNull;
+import com.google.auto.value.AutoValue;
 
 /**
  * A class wrapping output surface information for initializing {@link SessionProcessor}.
@@ -31,7 +31,8 @@ public abstract class OutputSurface {
     /**
      * Creates an OutputSurface instance.
      */
-    public static @NonNull OutputSurface create(
+    @NonNull
+    public static OutputSurface create(
             @NonNull Surface surface, @NonNull Size size, int imageFormat) {
         return new AutoValue_OutputSurface(surface, size, imageFormat);
     }
@@ -39,12 +40,14 @@ public abstract class OutputSurface {
     /**
      * Gets the {@link Surface}.
      */
-    public abstract @NonNull Surface getSurface();
+    @NonNull
+    public abstract Surface getSurface();
 
     /**
      * Gets the size of the {@link Surface}.
      */
-    public abstract @NonNull Size getSize();
+    @NonNull
+    public abstract Size getSize();
 
     /**
      * Gets the image format of the {@link Surface}.

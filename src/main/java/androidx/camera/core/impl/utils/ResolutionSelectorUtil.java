@@ -16,9 +16,8 @@
 
 package androidx.camera.core.impl.utils;
 
+import androidx.annotation.Nullable;
 import androidx.camera.core.resolutionselector.ResolutionSelector;
-
-import org.jspecify.annotations.Nullable;
 
 /**
  * Utility class for resolution selector related operations.
@@ -37,7 +36,8 @@ public class ResolutionSelectorUtil {
      * @return {@code null} if both the input resolution selectors are null. Otherwise, returns
      * the merged resolution selector.
      */
-    public static @Nullable ResolutionSelector overrideResolutionSelectors(
+    @Nullable
+    public static ResolutionSelector overrideResolutionSelectors(
             @Nullable ResolutionSelector baseResolutionSelector,
             @Nullable ResolutionSelector resolutionSelectorToOverride) {
         if (resolutionSelectorToOverride == null) {

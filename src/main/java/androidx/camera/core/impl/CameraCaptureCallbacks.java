@@ -16,7 +16,7 @@
 
 package androidx.camera.core.impl;
 
-import org.jspecify.annotations.NonNull;
+import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,12 +30,14 @@ public final class CameraCaptureCallbacks {
     }
 
     /** Returns a camera capture callback which does nothing. */
-    public static @NonNull CameraCaptureCallback createNoOpCallback() {
+    @NonNull
+    public static CameraCaptureCallback createNoOpCallback() {
         return new NoOpCameraCaptureCallback();
     }
 
     /** Returns a camera capture callback which calls a list of other callbacks. */
-    static @NonNull CameraCaptureCallback createComboCallback(
+    @NonNull
+    static CameraCaptureCallback createComboCallback(
             @NonNull List<CameraCaptureCallback> callbacks) {
         if (callbacks.isEmpty()) {
             return createNoOpCallback();
@@ -46,8 +48,9 @@ public final class CameraCaptureCallbacks {
     }
 
     /** Returns a camera capture callback which calls a list of other callbacks. */
-    public static @NonNull CameraCaptureCallback createComboCallback(
-            CameraCaptureCallback @NonNull ... callbacks) {
+    @NonNull
+    public static CameraCaptureCallback createComboCallback(
+            @NonNull CameraCaptureCallback... callbacks) {
         return createComboCallback(Arrays.asList(callbacks));
     }
 
@@ -111,7 +114,8 @@ public final class CameraCaptureCallbacks {
             }
         }
 
-        public @NonNull List<CameraCaptureCallback> getCallbacks() {
+        @NonNull
+        public List<CameraCaptureCallback> getCallbacks() {
             return mCallbacks;
         }
 

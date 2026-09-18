@@ -20,10 +20,9 @@ import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.media.Image;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.camera.core.impl.TagBundle;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.nio.ByteBuffer;
 
@@ -57,8 +56,7 @@ final class AndroidImageProxy implements ImageProxy {
                 TagBundle.emptyBundle(),
                 image.getTimestamp(),
                 0,
-                new Matrix(),
-                FlashState.UNKNOWN);
+                new Matrix());
     }
 
     @Override
@@ -67,7 +65,8 @@ final class AndroidImageProxy implements ImageProxy {
     }
 
     @Override
-    public @NonNull Rect getCropRect() {
+    @NonNull
+    public Rect getCropRect() {
         return mImage.getCropRect();
     }
 
@@ -92,7 +91,8 @@ final class AndroidImageProxy implements ImageProxy {
     }
 
     @Override
-    public ImageProxy.PlaneProxy @NonNull [] getPlanes() {
+    @NonNull
+    public ImageProxy.PlaneProxy[] getPlanes() {
         return mPlanes;
     }
 
@@ -115,13 +115,15 @@ final class AndroidImageProxy implements ImageProxy {
         }
 
         @Override
-        public @NonNull ByteBuffer getBuffer() {
+        @NonNull
+        public ByteBuffer getBuffer() {
             return mPlane.getBuffer();
         }
     }
 
     @Override
-    public @NonNull ImageInfo getImageInfo() {
+    @NonNull
+    public ImageInfo getImageInfo() {
         return mImageInfo;
     }
 

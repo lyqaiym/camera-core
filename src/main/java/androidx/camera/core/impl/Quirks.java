@@ -16,10 +16,9 @@
 
 package androidx.camera.core.impl;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,10 +29,11 @@ import java.util.List;
  */
 public class Quirks {
 
-    private final @NonNull List<Quirk> mQuirks;
+    @NonNull
+    private final List<Quirk> mQuirks;
 
     /** Wraps the provided list of quirks. */
-    public Quirks(final @NonNull List<Quirk> quirks) {
+    public Quirks(@NonNull final List<Quirk> quirks) {
         mQuirks = new ArrayList<>(quirks);
     }
 
@@ -48,7 +48,8 @@ public class Quirks {
      * @return A {@link Quirk} instance of the provided type, or {@code null} if it isn't found.
      */
     @SuppressWarnings("unchecked")
-    public <T extends Quirk> @Nullable T get(final @NonNull Class<T> quirkClass) {
+    @Nullable
+    public <T extends Quirk> T get(@NonNull final Class<T> quirkClass) {
         for (final Quirk quirk : mQuirks) {
             if (quirk.getClass() == quirkClass) {
                 return (T) quirk;
@@ -68,7 +69,8 @@ public class Quirks {
      * found.
      */
     @SuppressWarnings("unchecked")
-    public <T extends Quirk> @NonNull List<T> getAll(@NonNull Class<T> quirkClass) {
+    @NonNull
+    public <T extends Quirk> List<T> getAll(@NonNull Class<T> quirkClass) {
         List<T> list = new ArrayList<>();
         for (Quirk quirk : mQuirks) {
             if (quirkClass.isAssignableFrom(quirk.getClass())) {
@@ -109,7 +111,8 @@ public class Quirks {
      * @param quirks The Quirks to convert.
      * @return A pipe-separated string containing the simple class names of each Quirk.
      */
-    public static @NonNull String toString(@NonNull Quirks quirks) {
+    @NonNull
+    public static String toString(@NonNull Quirks quirks) {
         List<String> quirkNames = new ArrayList<>();
         for (Quirk quirk : quirks.mQuirks) {
             quirkNames.add(quirk.getClass().getSimpleName());

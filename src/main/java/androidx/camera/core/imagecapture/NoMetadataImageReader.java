@@ -21,6 +21,8 @@ import android.util.Pair;
 import android.util.Size;
 import android.view.Surface;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.camera.core.ImageProxy;
 import androidx.camera.core.MetadataImageReader;
 import androidx.camera.core.SettableImageProxy;
@@ -30,9 +32,6 @@ import androidx.camera.core.impl.TagBundle;
 import androidx.camera.core.internal.CameraCaptureResultImageInfo;
 import androidx.camera.core.streamsharing.StreamSharing;
 import androidx.camera.core.streamsharing.VirtualCameraCaptureResult;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.util.concurrent.Executor;
 
@@ -47,8 +46,10 @@ import java.util.concurrent.Executor;
  * {@link CameraCaptureResult} does not have matching timestamps with {@link ImageProxy}.
  */
 public class NoMetadataImageReader implements ImageReaderProxy {
-    private final @NonNull ImageReaderProxy mWrappedImageReader;
-    private @Nullable ProcessingRequest mPendingRequest;
+    @NonNull
+    private final ImageReaderProxy mWrappedImageReader;
+    @Nullable
+    private ProcessingRequest mPendingRequest;
 
     /**
      * Creates a new instance of {@link NoMetadataImageReader} by wrapping an existing
@@ -70,13 +71,15 @@ public class NoMetadataImageReader implements ImageReaderProxy {
         mPendingRequest = null;
     }
 
+    @Nullable
     @Override
-    public @Nullable ImageProxy acquireLatestImage() {
+    public ImageProxy acquireLatestImage() {
         return createImageProxyWithEmptyMetadata(mWrappedImageReader.acquireLatestImage());
     }
 
+    @Nullable
     @Override
-    public @Nullable ImageProxy acquireNextImage() {
+    public ImageProxy acquireNextImage() {
         return createImageProxyWithEmptyMetadata(mWrappedImageReader.acquireNextImage());
     }
 
@@ -105,8 +108,9 @@ public class NoMetadataImageReader implements ImageReaderProxy {
         return mWrappedImageReader.getMaxImages();
     }
 
+    @Nullable
     @Override
-    public @Nullable Surface getSurface() {
+    public Surface getSurface() {
         return mWrappedImageReader.getSurface();
     }
 
@@ -122,8 +126,8 @@ public class NoMetadataImageReader implements ImageReaderProxy {
         mWrappedImageReader.clearOnImageAvailableListener();
     }
 
-    private @Nullable ImageProxy createImageProxyWithEmptyMetadata(
-            @Nullable ImageProxy originalImage) {
+    @Nullable
+    private ImageProxy createImageProxyWithEmptyMetadata(@Nullable ImageProxy originalImage) {
         if (originalImage == null) {
             return null;
         }

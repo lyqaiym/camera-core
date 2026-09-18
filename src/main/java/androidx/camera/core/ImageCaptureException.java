@@ -16,8 +16,8 @@
 
 package androidx.camera.core;
 
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 /**
  * An exception thrown to indicate an error has occurred during image capture or while saving the
@@ -30,7 +30,7 @@ public class ImageCaptureException extends Exception {
     private final int mImageCaptureError;
 
     public ImageCaptureException(@ImageCapture.ImageCaptureError final int imageCaptureError,
-            final @NonNull String message, final @Nullable Throwable cause) {
+            @NonNull final String message, @Nullable final Throwable cause) {
         super(message, cause);
         mImageCaptureError = imageCaptureError;
     }

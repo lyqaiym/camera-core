@@ -16,11 +16,10 @@
 
 package androidx.camera.core.impl.utils;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.util.Preconditions;
 import androidx.core.util.Supplier;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 /**
  * Implementation of an {@link Optional} containing a reference.
@@ -39,13 +38,15 @@ final class Present<T> extends Optional<T> {
         return true;
     }
 
+    @NonNull
     @Override
-    public @NonNull T get() {
+    public T get() {
         return mReference;
     }
 
+    @NonNull
     @Override
-    public @NonNull T or(@NonNull T defaultValue) {
+    public T or(@NonNull T defaultValue) {
         Preconditions.checkNotNull(defaultValue,
                 "use Optional.orNull() instead of Optional.or(null)");
         return mReference;
@@ -57,8 +58,9 @@ final class Present<T> extends Optional<T> {
         return this;
     }
 
+    @NonNull
     @Override
-    public @NonNull T or(@NonNull Supplier<? extends T> supplier) {
+    public T or(@NonNull Supplier<? extends T> supplier) {
         Preconditions.checkNotNull(supplier);
         return mReference;
     }
@@ -82,8 +84,9 @@ final class Present<T> extends Optional<T> {
         return 0x598df91c + mReference.hashCode();
     }
 
+    @NonNull
     @Override
-    public @NonNull String toString() {
+    public String toString() {
         return "Optional.of(" + mReference + ")";
     }
 

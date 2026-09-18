@@ -19,11 +19,10 @@ package androidx.camera.core;
 import android.content.ComponentName;
 
 import androidx.annotation.IntDef;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.google.auto.value.AutoValue;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -203,7 +202,8 @@ public abstract class CameraState {
      *
      * <p>A {@link CameraState} is not expected to be instantiated in normal operation.
      */
-    public static @NonNull CameraState create(@NonNull Type type) {
+    @NonNull
+    public static CameraState create(@NonNull Type type) {
         return create(type, null);
     }
 
@@ -213,7 +213,8 @@ public abstract class CameraState {
      *
      * <p>A {@link CameraState} is not expected to be instantiated in normal operation.
      */
-    public static @NonNull CameraState create(@NonNull Type type, @Nullable StateError error) {
+    @NonNull
+    public static CameraState create(@NonNull Type type, @Nullable StateError error) {
         return new AutoValue_CameraState(type, error);
     }
 
@@ -222,14 +223,16 @@ public abstract class CameraState {
      *
      * @return The camera's state
      */
-    public abstract @NonNull Type getType();
+    @NonNull
+    public abstract Type getType();
 
     /**
      * Potentially returns an error the camera encountered.
      *
      * @return An error the camera encountered, or {@code null} otherwise.
      */
-    public abstract @Nullable StateError getError();
+    @Nullable
+    public abstract StateError getError();
 
     @IntDef(value = {
             ERROR_CAMERA_IN_USE,
@@ -443,7 +446,8 @@ public abstract class CameraState {
          *
          * <p>A {@link StateError} is not expected to be instantiated in normal operation.
          */
-        public static @NonNull StateError create(@ErrorCode int error) {
+        @NonNull
+        public static StateError create(@ErrorCode int error) {
             return create(error, null);
         }
 
@@ -452,7 +456,8 @@ public abstract class CameraState {
          *
          * <p>A {@link StateError} is not expected to be instantiated in normal operation.
          */
-        public static @NonNull StateError create(@ErrorCode int error, @Nullable Throwable cause) {
+        @NonNull
+        public static StateError create(@ErrorCode int error, @Nullable Throwable cause) {
             return new AutoValue_CameraState_StateError(error, cause);
         }
 
@@ -474,7 +479,8 @@ public abstract class CameraState {
          *
          * @return The cause of this error, or {@code null} if the cause was not supplied.
          */
-        public abstract @Nullable Throwable getCause();
+        @Nullable
+        public abstract Throwable getCause();
 
         /**
          * Returns the type of this error.
@@ -484,7 +490,8 @@ public abstract class CameraState {
          *
          * @return The type of this error
          */
-        public @NonNull ErrorType getType() {
+        @NonNull
+        public ErrorType getType() {
             int code = getCode();
             if (code == ERROR_CAMERA_IN_USE || code == ERROR_MAX_CAMERAS_IN_USE
                     || code == ERROR_OTHER_RECOVERABLE_ERROR) {

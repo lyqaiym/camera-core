@@ -16,11 +16,10 @@
 
 package androidx.camera.core.processing;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
 import androidx.camera.core.ImageCaptureException;
 import androidx.camera.core.impl.utils.executor.CameraXExecutors;
-
-import org.jspecify.annotations.NonNull;
 
 /**
  * Operation that turns a single input image frame {@link I} to a output {@link O}.
@@ -43,6 +42,7 @@ public interface Operation<I, O> {
      * blocks the current thread. It must be invoked on a non-blocking thread. e.g.
      * {@link CameraXExecutors#ioExecutor()}.
      */
+    @NonNull
     @WorkerThread
-    @NonNull O apply(@NonNull I i) throws ImageCaptureException;
+    O apply(@NonNull I i) throws ImageCaptureException;
 }

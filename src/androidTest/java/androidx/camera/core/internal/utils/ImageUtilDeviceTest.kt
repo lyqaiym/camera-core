@@ -22,7 +22,6 @@ import android.graphics.ImageFormat
 import android.graphics.Matrix
 import android.graphics.PixelFormat
 import android.graphics.Rect
-import androidx.camera.core.FlashState
 import androidx.camera.core.ImageProcessingUtil
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.ImageReaderProxys
@@ -119,13 +118,7 @@ class ImageUtilDeviceTest {
     fun createBitmapFromImageProxy_yuv420() {
         val fakeImageProxy =
             TestImageUtil.createYuvFakeImageProxy(
-                ImmutableImageInfo.create(
-                    TagBundle.emptyBundle(),
-                    0,
-                    0,
-                    Matrix(),
-                    FlashState.UNKNOWN
-                ),
+                ImmutableImageInfo.create(TagBundle.emptyBundle(), 0, 0, Matrix()),
                 WIDTH,
                 HEIGHT
             )
@@ -141,13 +134,7 @@ class ImageUtilDeviceTest {
     fun createBitmapFromImageProxy_rgba() {
         val fakeYuvImageProxy =
             TestImageUtil.createYuvFakeImageProxy(
-                ImmutableImageInfo.create(
-                    TagBundle.emptyBundle(),
-                    0,
-                    0,
-                    Matrix(),
-                    FlashState.UNKNOWN
-                ),
+                ImmutableImageInfo.create(TagBundle.emptyBundle(), 0, 0, Matrix()),
                 WIDTH,
                 HEIGHT
             )
@@ -222,15 +209,7 @@ class ImageUtilDeviceTest {
     @Test
     fun createBitmapFromImageProxy_invalidFormat() {
         val image =
-            FakeImageProxy(
-                ImmutableImageInfo.create(
-                    TagBundle.emptyBundle(),
-                    0,
-                    0,
-                    Matrix(),
-                    FlashState.UNKNOWN
-                )
-            )
+            FakeImageProxy(ImmutableImageInfo.create(TagBundle.emptyBundle(), 0, 0, Matrix()))
         image.format = ImageFormat.PRIVATE
         image.width = WIDTH
         image.height = HEIGHT

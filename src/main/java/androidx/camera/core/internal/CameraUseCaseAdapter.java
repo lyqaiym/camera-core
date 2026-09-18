@@ -23,11 +23,8 @@ import static androidx.camera.core.DynamicRange.BIT_DEPTH_10_BIT;
 import static androidx.camera.core.DynamicRange.ENCODING_SDR;
 import static androidx.camera.core.DynamicRange.ENCODING_UNSPECIFIED;
 import static androidx.camera.core.ImageCapture.OUTPUT_FORMAT_JPEG_ULTRA_HDR;
-import static androidx.camera.core.ImageCapture.OUTPUT_FORMAT_RAW;
 import static androidx.camera.core.impl.ImageCaptureConfig.OPTION_OUTPUT_FORMAT;
-import static androidx.camera.core.impl.StreamSpec.FRAME_RATE_RANGE_UNSPECIFIED;
 import static androidx.camera.core.impl.UseCaseConfig.OPTION_CAPTURE_TYPE;
-import static androidx.camera.core.impl.UseCaseConfig.OPTION_TARGET_HIGH_SPEED_FRAME_RATE;
 import static androidx.camera.core.impl.utils.TransformUtils.rectToSize;
 import static androidx.camera.core.processing.TargetUtils.getNumberOfTargets;
 import static androidx.camera.core.streamsharing.StreamSharing.getCaptureTypes;
@@ -45,27 +42,27 @@ import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
 import android.util.Log;
 import android.util.Pair;
-import android.util.Range;
 import android.util.Size;
 import android.view.Surface;
 
 import androidx.annotation.GuardedBy;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.OptIn;
 import androidx.annotation.VisibleForTesting;
 import androidx.camera.core.Camera;
 import androidx.camera.core.CameraControl;
 import androidx.camera.core.CameraEffect;
 import androidx.camera.core.CameraInfo;
 import androidx.camera.core.CameraSelector;
-import androidx.camera.core.CompositionSettings;
 import androidx.camera.core.DynamicRange;
 import androidx.camera.core.ImageCapture;
+import androidx.camera.core.LayoutSettings;
 import androidx.camera.core.Logger;
 import androidx.camera.core.Preview;
 import androidx.camera.core.UseCase;
 import androidx.camera.core.ViewPort;
 import androidx.camera.core.concurrent.CameraCoordinator;
-import androidx.camera.core.impl.AdapterCameraInfo;
-import androidx.camera.core.impl.AdapterCameraInternal;
 import androidx.camera.core.impl.AttachedSurfaceInfo;
 import androidx.camera.core.impl.CameraConfig;
 import androidx.camera.core.impl.CameraConfigs;
@@ -78,6 +75,8 @@ import androidx.camera.core.impl.Config;
 import androidx.camera.core.impl.Identifier;
 import androidx.camera.core.impl.MutableOptionsBundle;
 import androidx.camera.core.impl.PreviewConfig;
+import androidx.camera.core.impl.RestrictedCameraControl;
+import androidx.camera.core.impl.RestrictedCameraInfo;
 import androidx.camera.core.impl.SessionConfig;
 import androidx.camera.core.impl.SessionProcessor;
 import androidx.camera.core.impl.StreamSpec;
@@ -87,14 +86,10 @@ import androidx.camera.core.impl.UseCaseConfigFactory;
 import androidx.camera.core.impl.UseCaseConfigFactory.CaptureType;
 import androidx.camera.core.impl.stabilization.StabilizationMode;
 import androidx.camera.core.impl.utils.executor.CameraXExecutors;
-import androidx.camera.core.internal.compat.workaround.StreamSharingForceEnabler;
 import androidx.camera.core.streamsharing.StreamSharing;
 import androidx.core.util.Preconditions;
 
 import com.google.auto.value.AutoValue;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -113,8 +108,10 @@ import java.util.Set;
  * and image formats can be supported.
  */
 public final class CameraUseCaseAdapter implements Camera {
-    private final @NonNull AdapterCameraInternal mCameraInternal;
-    private final @Nullable AdapterCameraInternal mSecondaryCameraInternal;
+    @NonNull
+    private final CameraInternal mCameraInternal;
+    @Nullable
+    private final CameraInternal mSecondaryCameraInternal;
     private final CameraDeviceSurfaceManager mCameraDeviceSurfaceManager;
     private final UseCaseConfigFactory mUseCaseConfigFactory;
 
@@ -133,17 +130,17 @@ public final class CameraUseCaseAdapter implements Camera {
     private final CameraCoordinator mCameraCoordinator;
 
     @GuardedBy("mLock")
-    private @Nullable ViewPort mViewPort;
+    @Nullable
+    private ViewPort mViewPort;
 
     @GuardedBy("mLock")
-    private @NonNull List<CameraEffect> mEffects = emptyList();
-
-    @GuardedBy("mLock")
-    private @NonNull Range<Integer> mTargetHighSpeedFps = FRAME_RATE_RANGE_UNSPECIFIED;
+    @NonNull
+    private List<CameraEffect> mEffects = emptyList();
 
     // Additional configs to apply onto the UseCases when added to this Camera
     @GuardedBy("mLock")
-    private final @NonNull CameraConfig mCameraConfig;
+    @NonNull
+    private final CameraConfig mCameraConfig;
 
     private final Object mLock = new Object();
 
@@ -160,15 +157,25 @@ public final class CameraUseCaseAdapter implements Camera {
     // Extensions require both Preview and ImageCapture and app only provides one of them,
     // CameraX will create the other and track it with this variable.
     @GuardedBy("mLock")
-    private @Nullable UseCase mPlaceholderForExtensions;
+    @Nullable
+    private UseCase mPlaceholderForExtensions;
     // Current StreamSharing parent UseCase if exists.
     @GuardedBy("mLock")
-    private @Nullable StreamSharing mStreamSharing;
+    @Nullable
+    private StreamSharing mStreamSharing;
 
-    private final @NonNull CompositionSettings mCompositionSettings;
-    private final @NonNull CompositionSettings mSecondaryCompositionSettings;
-    private final StreamSharingForceEnabler mStreamSharingForceEnabler =
-            new StreamSharingForceEnabler();
+    @NonNull
+    private final RestrictedCameraControl mAdapterCameraControl;
+    @NonNull
+    private final RestrictedCameraInfo mAdapterCameraInfo;
+
+    @Nullable
+    private final RestrictedCameraInfo mAdapterSecondaryCameraInfo;
+
+    @NonNull
+    private final LayoutSettings mLayoutSettings;
+    @NonNull
+    private final LayoutSettings mSecondaryLayoutSettings;
 
     /**
      * Create a new {@link CameraUseCaseAdapter} instance.
@@ -186,11 +193,11 @@ public final class CameraUseCaseAdapter implements Camera {
             @NonNull UseCaseConfigFactory useCaseConfigFactory) {
         this(camera,
                 null,
-                new AdapterCameraInfo(camera.getCameraInfoInternal(),
+                new RestrictedCameraInfo(camera.getCameraInfoInternal(),
                         CameraConfigs.defaultConfig()),
                 null,
-                CompositionSettings.DEFAULT,
-                CompositionSettings.DEFAULT,
+                LayoutSettings.DEFAULT,
+                LayoutSettings.DEFAULT,
                 cameraCoordinator,
                 cameraDeviceSurfaceManager,
                 useCaseConfigFactory);
@@ -201,14 +208,14 @@ public final class CameraUseCaseAdapter implements Camera {
      *
      * @param camera                     The camera that is wrapped.
      * @param secondaryCamera            The secondary camera that is wrapped.
-     * @param adapterCameraInfo       The {@link AdapterCameraInfo} that contains the extra
+     * @param restrictedCameraInfo       The {@link RestrictedCameraInfo} that contains the extra
      *                                   information to configure the {@link CameraInternal} when
      *                                   attaching the uses cases of this adapter to the camera.
-     * @param secondaryAdapterCameraInfo The {@link AdapterCameraInfo} of secondary camera.
-     * @param compositionSettings        The composition settings that will be used to configure the
+     * @param secondaryRestrictedCameraInfo The {@link RestrictedCameraInfo} of secondary camera.
+     * @param layoutSettings             The layout settings that will be used to configure the
      *                                   camera.
-     * @param secondaryCompositionSettings  The composition settings that will be used to configure
-     *                                      the secondary camera.
+     * @param secondaryLayoutSettings    The layout settings that will be used to configure the
+     *                                   secondary camera.
      * @param cameraCoordinator          Camera coordinator that exposes concurrent camera mode.
      * @param cameraDeviceSurfaceManager A class that checks for whether a specific camera
      *                                   can support the set of Surface with set resolutions.
@@ -218,35 +225,37 @@ public final class CameraUseCaseAdapter implements Camera {
     public CameraUseCaseAdapter(
             @NonNull CameraInternal camera,
             @Nullable CameraInternal secondaryCamera,
-            @NonNull AdapterCameraInfo adapterCameraInfo,
-            @Nullable AdapterCameraInfo secondaryAdapterCameraInfo,
-            @NonNull CompositionSettings compositionSettings,
-            @NonNull CompositionSettings secondaryCompositionSettings,
+            @NonNull RestrictedCameraInfo restrictedCameraInfo,
+            @Nullable RestrictedCameraInfo secondaryRestrictedCameraInfo,
+            @NonNull LayoutSettings layoutSettings,
+            @NonNull LayoutSettings secondaryLayoutSettings,
             @NonNull CameraCoordinator cameraCoordinator,
             @NonNull CameraDeviceSurfaceManager cameraDeviceSurfaceManager,
             @NonNull UseCaseConfigFactory useCaseConfigFactory) {
-        mCameraConfig = adapterCameraInfo.getCameraConfig();
-        mCameraInternal = new AdapterCameraInternal(camera, adapterCameraInfo);
-        if (secondaryCamera != null && secondaryAdapterCameraInfo != null) {
-            mSecondaryCameraInternal = new AdapterCameraInternal(secondaryCamera,
-                    secondaryAdapterCameraInfo);
-        } else {
-            mSecondaryCameraInternal = null;
-        }
-        mCompositionSettings = compositionSettings;
-        mSecondaryCompositionSettings = secondaryCompositionSettings;
+        mCameraInternal = camera;
+        mSecondaryCameraInternal = secondaryCamera;
+        mLayoutSettings = layoutSettings;
+        mSecondaryLayoutSettings = secondaryLayoutSettings;
         mCameraCoordinator = cameraCoordinator;
         mCameraDeviceSurfaceManager = cameraDeviceSurfaceManager;
         mUseCaseConfigFactory = useCaseConfigFactory;
-        mId = generateCameraId(adapterCameraInfo, secondaryAdapterCameraInfo);
+        mCameraConfig = restrictedCameraInfo.getCameraConfig();
+        SessionProcessor sessionProcessor = mCameraConfig.getSessionProcessor(null);
+        // TODO(b/279996499): bind the same restricted CameraControl and CameraInfo to use cases.
+        mAdapterCameraControl = new RestrictedCameraControl(
+                mCameraInternal.getCameraControlInternal(), sessionProcessor);
+        mAdapterCameraInfo = restrictedCameraInfo;
+        mAdapterSecondaryCameraInfo = secondaryRestrictedCameraInfo;
+        mId = generateCameraId(restrictedCameraInfo, secondaryRestrictedCameraInfo);
     }
 
     /**
-     * Generate a identifier for the {@link AdapterCameraInfo}.
+     * Generate a identifier for the {@link RestrictedCameraInfo}.
      */
-    public static @NonNull CameraId generateCameraId(
-            @NonNull AdapterCameraInfo primaryCameraInfo,
-            @Nullable AdapterCameraInfo secondaryCameraInfo) {
+    @NonNull
+    public static CameraId generateCameraId(
+            @NonNull RestrictedCameraInfo primaryCameraInfo,
+            @Nullable RestrictedCameraInfo secondaryCameraInfo) {
         return CameraId.create(
                 primaryCameraInfo.getCameraId()
                         + (secondaryCameraInfo == null ? "" : secondaryCameraInfo.getCameraId()),
@@ -256,7 +265,8 @@ public final class CameraUseCaseAdapter implements Camera {
     /**
      * Returns the identifier for this {@link CameraUseCaseAdapter}.
      */
-    public @NonNull CameraId getCameraId() {
+    @NonNull
+    public CameraId getCameraId() {
         return mId;
     }
 
@@ -282,16 +292,6 @@ public final class CameraUseCaseAdapter implements Camera {
     public void setEffects(@Nullable List<CameraEffect> effects) {
         synchronized (mLock) {
             mEffects = effects;
-        }
-    }
-
-    /**
-     * Set the target high speed frame rate that will be used for the {@link UseCase} attached to
-     * the camera.
-     */
-    public void setTargetHighSpeedFrameRate(@NonNull Range<Integer> frameRate) {
-        synchronized (mLock) {
-            mTargetHighSpeedFps = frameRate;
         }
     }
 
@@ -359,7 +359,7 @@ public final class CameraUseCaseAdapter implements Camera {
             // Force enable StreamSharing for Extensions to support VideoCapture. This means that
             // applyStreamSharing is set to true when the use case combination contains
             // VideoCapture and Extensions is enabled.
-            if (!applyStreamSharing && shouldForceEnableStreamSharing(appUseCases)) {
+            if (!applyStreamSharing && hasExtension() && hasVideoCapture(appUseCases)) {
                 updateUseCases(appUseCases, /*applyStreamSharing*/true, isDualCamera);
                 return;
             }
@@ -384,8 +384,8 @@ public final class CameraUseCaseAdapter implements Camera {
             // Calculate suggested resolutions. This step throws exception if the camera UseCases
             // fails the supported stream combination rules.
             Map<UseCase, ConfigPair> configs = getConfigs(cameraUseCasesToAttach,
-                    mCameraConfig.getUseCaseConfigFactory(), mUseCaseConfigFactory,
-                    mTargetHighSpeedFps);
+                    mCameraConfig.getUseCaseConfigFactory(), mUseCaseConfigFactory);
+
             Map<UseCase, StreamSpec> primaryStreamSpecMap;
             Map<UseCase, StreamSpec> secondaryStreamSpecMap = Collections.emptyMap();
             try {
@@ -508,15 +508,6 @@ public final class CameraUseCaseAdapter implements Camera {
         }
     }
 
-    private boolean shouldForceEnableStreamSharing(@NonNull Collection<UseCase> appUseCases) {
-        if (hasExtension() && hasVideoCapture(appUseCases)) {
-            return true;
-        }
-
-        return mStreamSharingForceEnabler.shouldForceEnableStreamSharing(
-                mCameraInternal.getCameraInfoInternal().getCameraId(), appUseCases);
-    }
-
     /**
      * Return true if the given StreamSpec has any option with a different value than that
      * of the given sessionConfig.
@@ -563,7 +554,8 @@ public final class CameraUseCaseAdapter implements Camera {
     /**
      * Returns {@link UseCase}s qualified for {@link StreamSharing}.
      */
-    private @NonNull Set<UseCase> getStreamSharingChildren(@NonNull Collection<UseCase> appUseCases,
+    @NonNull
+    private Set<UseCase> getStreamSharingChildren(@NonNull Collection<UseCase> appUseCases,
             boolean forceSharingToPreviewAndVideo) {
         Set<UseCase> children = new HashSet<>();
         int sharingTargets = getSharingTargets(forceSharingToPreviewAndVideo);
@@ -606,8 +598,9 @@ public final class CameraUseCaseAdapter implements Camera {
      * <p>Returns null when there is no need to share the stream, or the combination of children
      * UseCase are invalid(e.g. contains more than 1 UseCase per type).
      */
-    private @Nullable StreamSharing createOrReuseStreamSharing(
-            @NonNull Collection<UseCase> appUseCases, boolean forceSharingToPreviewAndVideo) {
+    @Nullable
+    private StreamSharing createOrReuseStreamSharing(@NonNull Collection<UseCase> appUseCases,
+            boolean forceSharingToPreviewAndVideo) {
         synchronized (mLock) {
             Set<UseCase> newChildren = getStreamSharingChildren(appUseCases,
                     forceSharingToPreviewAndVideo);
@@ -629,8 +622,8 @@ public final class CameraUseCaseAdapter implements Camera {
 
             return new StreamSharing(mCameraInternal,
                     mSecondaryCameraInternal,
-                    mCompositionSettings,
-                    mSecondaryCompositionSettings,
+                    mLayoutSettings,
+                    mSecondaryLayoutSettings,
                     newChildren,
                     mUseCaseConfigFactory);
         }
@@ -681,14 +674,16 @@ public final class CameraUseCaseAdapter implements Camera {
      * <p> The UseCases may or may not be actually attached to the underlying
      * {@link CameraInternal} instance.
      */
-    public @NonNull List<UseCase> getUseCases() {
+    @NonNull
+    public List<UseCase> getUseCases() {
         synchronized (mLock) {
             return new ArrayList<>(mAppUseCases);
         }
     }
 
     @VisibleForTesting
-    public @NonNull Collection<UseCase> getCameraUseCases() {
+    @NonNull
+    public Collection<UseCase> getCameraUseCases() {
         synchronized (mLock) {
             return new ArrayList<>(mCameraUseCases);
         }
@@ -808,10 +803,7 @@ public final class CameraUseCaseAdapter implements Camera {
                     Preconditions.checkNotNull(useCase.getAttachedStreamSpec()).getDynamicRange(),
                     getCaptureTypes(useCase),
                     useCase.getAttachedStreamSpec().getImplementationOptions(),
-                    useCase.getCurrentConfig().getTargetFrameRate(null),
-                    Preconditions.checkNotNull(
-                            useCase.getCurrentConfig().getTargetHighSpeedFrameRate(
-                                    FRAME_RATE_RANGE_UNSPECIFIED)));
+                    useCase.getCurrentConfig().getTargetFrameRate(null));
             existingSurfaces.add(attachedSurfaceInfo);
             surfaceInfoUseCaseMap.put(attachedSurfaceInfo, useCase);
             suggestedStreamSpecs.put(useCase, useCase.getAttachedStreamSpec());
@@ -896,8 +888,9 @@ public final class CameraUseCaseAdapter implements Camera {
     /**
      * Sets effects on the given {@link UseCase} list and returns unused effects.
      */
-    private static @NonNull List<CameraEffect> setEffectsOnUseCases(
-            @NonNull List<CameraEffect> effects, @NonNull Collection<UseCase> useCases) {
+    @NonNull
+    private static List<CameraEffect> setEffectsOnUseCases(@NonNull List<CameraEffect> effects,
+            @NonNull Collection<UseCase> useCases) {
         List<CameraEffect> unusedEffects = new ArrayList<>(effects);
         for (UseCase useCase : useCases) {
             useCase.setEffect(null);
@@ -957,7 +950,8 @@ public final class CameraUseCaseAdapter implements Camera {
         }
     }
 
-    private static @NonNull Matrix calculateSensorToBufferTransformMatrix(
+    @NonNull
+    private static Matrix calculateSensorToBufferTransformMatrix(
             @NonNull Rect fullSensorRect,
             @NonNull Size useCaseSize) {
         checkArgument(
@@ -990,8 +984,7 @@ public final class CameraUseCaseAdapter implements Camera {
      */
     private static Map<UseCase, ConfigPair> getConfigs(@NonNull Collection<UseCase> useCases,
             @NonNull UseCaseConfigFactory extendedFactory,
-            @NonNull UseCaseConfigFactory cameraFactory,
-            @NonNull Range<Integer> targetHighSpeedFps) {
+            @NonNull UseCaseConfigFactory cameraFactory) {
         Map<UseCase, ConfigPair> configs = new HashMap<>();
         for (UseCase useCase : useCases) {
             UseCaseConfig<?> extendedConfig;
@@ -1002,23 +995,9 @@ public final class CameraUseCaseAdapter implements Camera {
                 extendedConfig = useCase.getDefaultConfig(false, extendedFactory);
             }
             UseCaseConfig<?> cameraConfig = useCase.getDefaultConfig(true, cameraFactory);
-            cameraConfig = attachUseCaseSharedConfigs(useCase, cameraConfig, targetHighSpeedFps);
             configs.put(useCase, new ConfigPair(extendedConfig, cameraConfig));
         }
         return configs;
-    }
-
-    @NonNull
-    private static UseCaseConfig<?> attachUseCaseSharedConfigs(
-            @NonNull UseCase useCase,
-            @Nullable UseCaseConfig<?> useCaseConfig,
-            @NonNull Range<Integer> targetHighSpeedFps) {
-        MutableOptionsBundle mutableConfig = useCaseConfig != null
-                ? MutableOptionsBundle.from(useCaseConfig) : MutableOptionsBundle.create();
-
-        mutableConfig.insertOption(OPTION_TARGET_HIGH_SPEED_FRAME_RATE, targetHighSpeedFps);
-
-        return useCase.getUseCaseConfigBuilder(mutableConfig).getUseCaseConfig();
     }
 
     private static UseCaseConfig<?> generateExtendedStreamSharingConfigFromPreview(
@@ -1052,19 +1031,18 @@ public final class CameraUseCaseAdapter implements Camera {
                         + "standard dynamic range.");
             }
 
-            if (hasRawImageCapture(useCases)) {
+            if (hasUltraHdrImageCapture(useCases)) {
                 throw new IllegalArgumentException("Extensions are not supported for use with "
-                        + "Raw image capture.");
+                        + "Ultra HDR image capture.");
             }
         }
 
         // TODO(b/322311893): throw exception to block feature combination of effect with Ultra
         //  HDR, until ImageProcessor and SurfaceProcessor can support JPEG/R format.
         synchronized (mLock) {
-            if (!mEffects.isEmpty() && (hasUltraHdrImageCapture(useCases)
-                    || hasRawImageCapture(useCases))) {
-                throw new IllegalArgumentException("Ultra HDR image and Raw capture does not "
-                        + "support for use with CameraEffect.");
+            if (!mEffects.isEmpty() && hasUltraHdrImageCapture(useCases)) {
+                throw new IllegalArgumentException("Ultra HDR image capture does not support for "
+                        + "use with CameraEffect.");
             }
         }
     }
@@ -1087,6 +1065,7 @@ public final class CameraUseCaseAdapter implements Camera {
         return is10Bit || isHdr;
     }
 
+    @OptIn(markerClass = androidx.camera.core.ExperimentalImageCaptureOutputFormat.class)
     private static boolean hasUltraHdrImageCapture(@NonNull Collection<UseCase> useCases) {
         for (UseCase useCase : useCases) {
             if (!isImageCapture(useCase)) {
@@ -1096,23 +1075,6 @@ public final class CameraUseCaseAdapter implements Camera {
             UseCaseConfig<?> config = useCase.getCurrentConfig();
             if (config.containsOption(OPTION_OUTPUT_FORMAT) && checkNotNull(
                     config.retrieveOption(OPTION_OUTPUT_FORMAT)) == OUTPUT_FORMAT_JPEG_ULTRA_HDR) {
-                return true;
-            }
-
-        }
-        return false;
-    }
-
-    private static boolean hasRawImageCapture(@NonNull Collection<UseCase> useCases) {
-        for (UseCase useCase : useCases) {
-            if (!isImageCapture(useCase)) {
-                continue;
-            }
-
-            UseCaseConfig<?> config = useCase.getCurrentConfig();
-            if (config.containsOption(OPTION_OUTPUT_FORMAT)
-                    && (checkNotNull(config.retrieveOption(OPTION_OUTPUT_FORMAT))
-                    == OUTPUT_FORMAT_RAW)) {
                 return true;
             }
 
@@ -1130,15 +1092,18 @@ public final class CameraUseCaseAdapter implements Camera {
     @AutoValue
     public abstract static class CameraId {
         /** Creates a identifier for a {@link CameraUseCaseAdapter}. */
-        public static @NonNull CameraId create(@NonNull String cameraIdString,
+        @NonNull
+        public static CameraId create(@NonNull String cameraIdString,
                 @NonNull Identifier cameraConfigId) {
             return new AutoValue_CameraUseCaseAdapter_CameraId(cameraIdString, cameraConfigId);
         }
 
         /** Gets the camera ID string. */
-        public abstract @NonNull String getCameraIdString();
+        @NonNull
+        public abstract String getCameraIdString();
         /** Gets the camera configuration. */
-        public abstract @NonNull Identifier getCameraConfigId();
+        @NonNull
+        public abstract Identifier getCameraConfigId();
     }
 
     /**
@@ -1161,22 +1126,26 @@ public final class CameraUseCaseAdapter implements Camera {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Camera interface
     ////////////////////////////////////////////////////////////////////////////////////////////////
+    @NonNull
     @Override
-    public @NonNull CameraControl getCameraControl() {
-        return mCameraInternal.getCameraControl();
+    public CameraControl getCameraControl() {
+        return mAdapterCameraControl;
+    }
+
+    @NonNull
+    @Override
+    public CameraInfo getCameraInfo() {
+        return mAdapterCameraInfo;
+    }
+
+    @Nullable
+    public CameraInfo getSecondaryCameraInfo() {
+        return mAdapterSecondaryCameraInfo;
     }
 
     @Override
-    public @NonNull CameraInfo getCameraInfo() {
-        return mCameraInternal.getCameraInfo();
-    }
-
-    public @Nullable CameraInfo getSecondaryCameraInfo() {
-        return mSecondaryCameraInternal != null ? mSecondaryCameraInternal.getCameraInfo() : null;
-    }
-
-    @Override
-    public @NonNull CameraConfig getExtendedConfig() {
+    @NonNull
+    public CameraConfig getExtendedConfig() {
         synchronized (mLock) {
             return mCameraConfig;
         }
@@ -1184,7 +1153,7 @@ public final class CameraUseCaseAdapter implements Camera {
 
     @Override
     public boolean isUseCasesCombinationSupported(boolean withStreamSharing,
-            UseCase @NonNull ... useCases) {
+            @NonNull UseCase... useCases) {
         Collection<UseCase> useCasesToVerify = Arrays.asList(useCases);
         if (withStreamSharing) {
             StreamSharing streamSharing = createOrReuseStreamSharing(useCasesToVerify, true);
@@ -1194,8 +1163,7 @@ public final class CameraUseCaseAdapter implements Camera {
             // If the UseCases exceed the resolutions then it will throw an exception
             try {
                 Map<UseCase, ConfigPair> configs = getConfigs(useCasesToVerify,
-                        mCameraConfig.getUseCaseConfigFactory(), mUseCaseConfigFactory,
-                        FRAME_RATE_RANGE_UNSPECIFIED);
+                        mCameraConfig.getUseCaseConfigFactory(), mUseCaseConfigFactory);
                 calculateSuggestedStreamSpecs(
                         getCameraMode(),
                         mCameraInternal.getCameraInfoInternal(),
@@ -1213,8 +1181,9 @@ public final class CameraUseCaseAdapter implements Camera {
      *
      * @param appUseCases UseCase provided by the app.
      */
-    private @Nullable UseCase calculatePlaceholderForExtensions(
-            @NonNull Collection<UseCase> appUseCases, @Nullable StreamSharing streamSharing) {
+    @Nullable
+    private UseCase calculatePlaceholderForExtensions(@NonNull Collection<UseCase> appUseCases,
+            @Nullable StreamSharing streamSharing) {
         synchronized (mLock) {
             // Replace children with StreamSharing before calculation.
             List<UseCase> useCasesToCheck = new ArrayList<>(appUseCases);

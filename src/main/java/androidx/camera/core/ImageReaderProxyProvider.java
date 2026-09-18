@@ -16,10 +16,9 @@
 
 package androidx.camera.core;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RestrictTo;
 import androidx.camera.core.impl.ImageReaderProxy;
-
-import org.jspecify.annotations.NonNull;
 
 /**
  * Provider that provides a {@link androidx.camera.core.impl.ImageReaderProxy} instance.
@@ -32,6 +31,6 @@ public interface ImageReaderProxyProvider {
      * Implemented by the caller to provider a instance of ImageReaderProxy with the given
      * parameters.
      */
-    @NonNull ImageReaderProxy newInstance(int width, int height, int format, int queueDepth,
-            long usage);
+    @NonNull
+    ImageReaderProxy newInstance(int width, int height, int format, int queueDepth, long usage);
 }

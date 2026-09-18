@@ -19,11 +19,10 @@ package androidx.camera.core.impl;
 import android.util.Size;
 import android.view.Surface;
 
+import androidx.annotation.NonNull;
 import androidx.camera.core.impl.utils.futures.Futures;
 
 import com.google.common.util.concurrent.ListenableFuture;
-
-import org.jspecify.annotations.NonNull;
 
 /**
  * A {@link DeferrableSurface} which always returns immediately.
@@ -42,7 +41,8 @@ public final class ImmediateSurface extends DeferrableSurface {
     }
 
     @Override
-    public @NonNull ListenableFuture<Surface> provideSurface() {
+    @NonNull
+    public ListenableFuture<Surface> provideSurface() {
         return Futures.immediateFuture(mSurface);
     }
 }

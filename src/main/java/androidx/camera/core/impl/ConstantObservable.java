@@ -16,12 +16,11 @@
 
 package androidx.camera.core.impl;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.camera.core.impl.utils.futures.Futures;
 
 import com.google.common.util.concurrent.ListenableFuture;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -42,7 +41,8 @@ public final class ConstantObservable<T> implements Observable<T> {
      * @param value The value which will immediately be sent to observers and is always returned
      *              by {@link #fetchData()}.
      */
-    public static <U> @NonNull Observable<U> withValue(@Nullable U value) {
+    @NonNull
+    public static <U> Observable<U> withValue(@Nullable U value) {
         if (value == null) {
             @SuppressWarnings({"unchecked", "rawtypes"}) // Safe since null can be cast to any type
             Observable<U> typedNull = (Observable) NULL_OBSERVABLE;
@@ -55,8 +55,9 @@ public final class ConstantObservable<T> implements Observable<T> {
         mValueFuture = Futures.immediateFuture(value);
     }
 
+    @NonNull
     @Override
-    public @NonNull ListenableFuture<T> fetchData() {
+    public ListenableFuture<T> fetchData() {
         return mValueFuture;
     }
 

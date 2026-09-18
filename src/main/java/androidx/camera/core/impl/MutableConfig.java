@@ -16,8 +16,8 @@
 
 package androidx.camera.core.impl;
 
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 /**
  * MutableConfig is a {@link Config} that can be modified.
@@ -54,5 +54,6 @@ public interface MutableConfig extends Config {
      * @return The value that previously existed for <code>opt</code>, or <code>null</code> if the
      * option did not exist in this configuration.
      */
-    <ValueT> @Nullable ValueT removeOption(@NonNull Option<ValueT> opt);
+    @Nullable
+    <ValueT> ValueT removeOption(@NonNull Option<ValueT> opt);
 }

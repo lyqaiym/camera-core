@@ -21,6 +21,8 @@ import android.os.Handler;
 import android.util.Log;
 
 import androidx.annotation.IntRange;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.OptIn;
 import androidx.annotation.RestrictTo;
 import androidx.annotation.RestrictTo.Scope;
@@ -33,9 +35,6 @@ import androidx.camera.core.impl.OptionsBundle;
 import androidx.camera.core.impl.QuirkSettings;
 import androidx.camera.core.impl.UseCaseConfigFactory;
 import androidx.camera.core.internal.TargetConfig;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -75,7 +74,8 @@ public final class CameraXConfig implements TargetConfig<CameraX> {
      */
     public interface Provider {
         /** Returns the configuration to use for initializing an instance of CameraX. */
-        @NonNull CameraXConfig getCameraXConfig();
+        @NonNull
+        CameraXConfig getCameraXConfig();
     }
 
     // Option Declarations:
@@ -141,8 +141,9 @@ public final class CameraXConfig implements TargetConfig<CameraX> {
      *
      */
     @RestrictTo(Scope.LIBRARY_GROUP)
-    public CameraFactory.@Nullable Provider getCameraFactoryProvider(
-            CameraFactory.@Nullable Provider valueIfMissing) {
+    @Nullable
+    public CameraFactory.Provider getCameraFactoryProvider(
+            @Nullable CameraFactory.Provider valueIfMissing) {
         return mConfig.retrieveOption(OPTION_CAMERA_FACTORY_PROVIDER, valueIfMissing);
     }
 
@@ -151,8 +152,9 @@ public final class CameraXConfig implements TargetConfig<CameraX> {
      *
      */
     @RestrictTo(Scope.LIBRARY_GROUP)
-    public CameraDeviceSurfaceManager.@Nullable Provider getDeviceSurfaceManagerProvider(
-            CameraDeviceSurfaceManager.@Nullable Provider valueIfMissing) {
+    @Nullable
+    public CameraDeviceSurfaceManager.Provider getDeviceSurfaceManagerProvider(
+            @Nullable CameraDeviceSurfaceManager.Provider valueIfMissing) {
         return mConfig.retrieveOption(OPTION_DEVICE_SURFACE_MANAGER_PROVIDER, valueIfMissing);
     }
 
@@ -163,8 +165,9 @@ public final class CameraXConfig implements TargetConfig<CameraX> {
      *
      */
     @RestrictTo(Scope.LIBRARY_GROUP)
-    public UseCaseConfigFactory.@Nullable Provider getUseCaseConfigFactoryProvider(
-            UseCaseConfigFactory.@Nullable Provider valueIfMissing) {
+    @Nullable
+    public UseCaseConfigFactory.Provider getUseCaseConfigFactoryProvider(
+            @Nullable UseCaseConfigFactory.Provider valueIfMissing) {
         return mConfig.retrieveOption(OPTION_USECASE_CONFIG_FACTORY_PROVIDER, valueIfMissing);
     }
 
@@ -173,7 +176,8 @@ public final class CameraXConfig implements TargetConfig<CameraX> {
      *
      * @see Builder#setCameraExecutor(Executor)
      */
-    public @Nullable Executor getCameraExecutor(@Nullable Executor valueIfMissing) {
+    @Nullable
+    public Executor getCameraExecutor(@Nullable Executor valueIfMissing) {
         return mConfig.retrieveOption(OPTION_CAMERA_EXECUTOR, valueIfMissing);
     }
 
@@ -182,7 +186,8 @@ public final class CameraXConfig implements TargetConfig<CameraX> {
      *
      * @see Builder#setSchedulerHandler(Handler)
      */
-    public @Nullable Handler getSchedulerHandler(@Nullable Handler valueIfMissing) {
+    @Nullable
+    public Handler getSchedulerHandler(@Nullable Handler valueIfMissing) {
         return mConfig.retrieveOption(OPTION_SCHEDULER_HANDLER, valueIfMissing);
     }
 
@@ -200,8 +205,8 @@ public final class CameraXConfig implements TargetConfig<CameraX> {
      *
      * @see Builder#setAvailableCamerasLimiter(CameraSelector)
      */
-    public @Nullable CameraSelector getAvailableCamerasLimiter(
-            @Nullable CameraSelector valueIfMissing) {
+    @Nullable
+    public CameraSelector getAvailableCamerasLimiter(@Nullable CameraSelector valueIfMissing) {
         return mConfig.retrieveOption(OPTION_AVAILABLE_CAMERAS_LIMITER, valueIfMissing);
     }
 
@@ -226,8 +231,9 @@ public final class CameraXConfig implements TargetConfig<CameraX> {
      *
      * @see Builder#setCameraProviderInitRetryPolicy(RetryPolicy)
      */
+    @NonNull
     @ExperimentalRetryPolicy
-    public @NonNull RetryPolicy getCameraProviderInitRetryPolicy() {
+    public RetryPolicy getCameraProviderInitRetryPolicy() {
         return Objects.requireNonNull(
                 mConfig.retrieveOption(OPTION_CAMERA_PROVIDER_INIT_RETRY_POLICY,
                         RetryPolicy.DEFAULT));
@@ -243,13 +249,15 @@ public final class CameraXConfig implements TargetConfig<CameraX> {
      * @see Builder#setQuirkSettings(QuirkSettings)
      */
     @RestrictTo(Scope.LIBRARY_GROUP)
-    public @Nullable QuirkSettings getQuirkSettings() {
+    @Nullable
+    public QuirkSettings getQuirkSettings() {
         return mConfig.retrieveOption(OPTION_QUIRK_SETTINGS, null);
     }
 
     @RestrictTo(Scope.LIBRARY_GROUP)
+    @NonNull
     @Override
-    public @NonNull Config getConfig() {
+    public Config getConfig() {
         return mConfig;
     }
 
@@ -291,7 +299,8 @@ public final class CameraXConfig implements TargetConfig<CameraX> {
          * @param configuration An immutable configuration to pre-populate this builder.
          * @return The new Builder.
          */
-        public static @NonNull Builder fromConfig(@NonNull CameraXConfig configuration) {
+        @NonNull
+        public static Builder fromConfig(@NonNull CameraXConfig configuration) {
             return new Builder(MutableOptionsBundle.from(configuration));
         }
 
@@ -300,8 +309,8 @@ public final class CameraXConfig implements TargetConfig<CameraX> {
          *
          */
         @RestrictTo(Scope.LIBRARY_GROUP)
-        public @NonNull Builder setCameraFactoryProvider(
-                CameraFactory.@NonNull Provider cameraFactory) {
+        @NonNull
+        public Builder setCameraFactoryProvider(@NonNull CameraFactory.Provider cameraFactory) {
             getMutableConfig().insertOption(OPTION_CAMERA_FACTORY_PROVIDER, cameraFactory);
             return this;
         }
@@ -311,8 +320,9 @@ public final class CameraXConfig implements TargetConfig<CameraX> {
          *
          */
         @RestrictTo(Scope.LIBRARY_GROUP)
-        public @NonNull Builder setDeviceSurfaceManagerProvider(
-                CameraDeviceSurfaceManager.@NonNull Provider surfaceManagerProvider) {
+        @NonNull
+        public Builder setDeviceSurfaceManagerProvider(
+                @NonNull CameraDeviceSurfaceManager.Provider surfaceManagerProvider) {
             getMutableConfig().insertOption(OPTION_DEVICE_SURFACE_MANAGER_PROVIDER,
                     surfaceManagerProvider);
             return this;
@@ -326,8 +336,9 @@ public final class CameraXConfig implements TargetConfig<CameraX> {
          *
          */
         @RestrictTo(Scope.LIBRARY_GROUP)
-        public @NonNull Builder setUseCaseConfigFactoryProvider(
-                UseCaseConfigFactory.@NonNull Provider configFactoryProvider) {
+        @NonNull
+        public Builder setUseCaseConfigFactoryProvider(
+                @NonNull UseCaseConfigFactory.Provider configFactoryProvider) {
             getMutableConfig().insertOption(OPTION_USECASE_CONFIG_FACTORY_PROVIDER,
                     configFactoryProvider);
             return this;
@@ -343,7 +354,8 @@ public final class CameraXConfig implements TargetConfig<CameraX> {
          * applications with very specific threading requirements. If not set, CameraX will
          * create and use an optimized default internal executor.
          */
-        public @NonNull Builder setCameraExecutor(@NonNull Executor executor) {
+        @NonNull
+        public Builder setCameraExecutor(@NonNull Executor executor) {
             getMutableConfig().insertOption(OPTION_CAMERA_EXECUTOR, executor);
             return this;
         }
@@ -361,7 +373,8 @@ public final class CameraXConfig implements TargetConfig<CameraX> {
          *
          * @see #setCameraExecutor(Executor)
          */
-        public @NonNull Builder setSchedulerHandler(@NonNull Handler handler) {
+        @NonNull
+        public Builder setSchedulerHandler(@NonNull Handler handler) {
             getMutableConfig().insertOption(OPTION_SCHEDULER_HANDLER, handler);
             return this;
         }
@@ -382,7 +395,8 @@ public final class CameraXConfig implements TargetConfig<CameraX> {
          *                 {@link Log#INFO}, {@link Log#WARN} or {@link Log#ERROR}.
          * @return This {@link Builder} instance.
          */
-        public @NonNull Builder setMinimumLoggingLevel(
+        @NonNull
+        public Builder setMinimumLoggingLevel(
                 @IntRange(from = Log.DEBUG, to = Log.ERROR) int logLevel) {
             getMutableConfig().insertOption(OPTION_MIN_LOGGING_LEVEL, logLevel);
             return this;
@@ -405,7 +419,8 @@ public final class CameraXConfig implements TargetConfig<CameraX> {
          * cameras, it can set this configuration with {@link CameraSelector#DEFAULT_BACK_CAMERA}
          * and then CameraX will avoid initializing front facing cameras to reduce the latency.
          */
-        public @NonNull Builder setAvailableCamerasLimiter(
+        @NonNull
+        public Builder setAvailableCamerasLimiter(
                 @NonNull CameraSelector availableCameraSelector) {
             getMutableConfig().insertOption(OPTION_AVAILABLE_CAMERAS_LIMITER,
                     availableCameraSelector);
@@ -434,8 +449,8 @@ public final class CameraXConfig implements TargetConfig<CameraX> {
          * @param maxTimeoutInMillis The max timeout in milliseconds.
          * @return this builder.
          */
-        public @NonNull Builder setCameraOpenRetryMaxTimeoutInMillisWhileResuming(
-                long maxTimeoutInMillis) {
+        @NonNull
+        public Builder setCameraOpenRetryMaxTimeoutInMillisWhileResuming(long maxTimeoutInMillis) {
             getMutableConfig().insertOption(
                     OPTION_CAMERA_OPEN_RETRY_MAX_TIMEOUT_IN_MILLIS_WHILE_RESUMING,
                     maxTimeoutInMillis);
@@ -452,8 +467,9 @@ public final class CameraXConfig implements TargetConfig<CameraX> {
          *                    initialization.
          * @return this builder.
          */
+        @NonNull
         @ExperimentalRetryPolicy
-        public @NonNull Builder setCameraProviderInitRetryPolicy(@NonNull RetryPolicy retryPolicy) {
+        public Builder setCameraProviderInitRetryPolicy(@NonNull RetryPolicy retryPolicy) {
             getMutableConfig().insertOption(
                     OPTION_CAMERA_PROVIDER_INIT_RETRY_POLICY,
                     retryPolicy);
@@ -467,12 +483,14 @@ public final class CameraXConfig implements TargetConfig<CameraX> {
          * @return this builder.
          */
         @RestrictTo(Scope.LIBRARY_GROUP)
-        public @NonNull Builder setQuirkSettings(@NonNull QuirkSettings quirkSettings) {
+        @NonNull
+        public Builder setQuirkSettings(@NonNull QuirkSettings quirkSettings) {
             getMutableConfig().insertOption(OPTION_QUIRK_SETTINGS, quirkSettings);
             return this;
         }
 
-        private @NonNull MutableConfig getMutableConfig() {
+        @NonNull
+        private MutableConfig getMutableConfig() {
             return mMutableConfig;
         }
 
@@ -481,7 +499,8 @@ public final class CameraXConfig implements TargetConfig<CameraX> {
          *
          * @return A {@link CameraXConfig} populated with the current state.
          */
-        public @NonNull CameraXConfig build() {
+        @NonNull
+        public CameraXConfig build() {
             return new CameraXConfig(OptionsBundle.from(mMutableConfig));
         }
 
@@ -489,7 +508,8 @@ public final class CameraXConfig implements TargetConfig<CameraX> {
 
         @RestrictTo(Scope.LIBRARY_GROUP)
         @Override
-        public @NonNull Builder setTargetClass(@NonNull Class<CameraX> targetClass) {
+        @NonNull
+        public Builder setTargetClass(@NonNull Class<CameraX> targetClass) {
             getMutableConfig().insertOption(OPTION_TARGET_CLASS, targetClass);
 
             // If no name is set yet, then generate a unique name
@@ -503,7 +523,8 @@ public final class CameraXConfig implements TargetConfig<CameraX> {
 
         @RestrictTo(Scope.LIBRARY_GROUP)
         @Override
-        public @NonNull Builder setTargetName(@NonNull String targetName) {
+        @NonNull
+        public Builder setTargetName(@NonNull String targetName) {
             getMutableConfig().insertOption(OPTION_TARGET_NAME, targetName);
             return this;
         }
