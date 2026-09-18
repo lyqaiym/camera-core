@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 The Android Open Source Project
+ * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.BitmapRegionDecoder;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
+import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.YuvImage;
@@ -32,20 +33,23 @@ import android.util.Rational;
 import android.util.Size;
 
 import androidx.annotation.IntRange;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
+import androidx.camera.core.ImageProcessingUtil;
 import androidx.camera.core.ImageProxy;
 import androidx.camera.core.Logger;
+import androidx.camera.core.impl.utils.ExifData;
+import androidx.camera.core.impl.utils.ExifOutputStream;
+
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 /**
  * Utility class for image related operations.
  */
-@RequiresApi(21) // TODO(b/200306659): Remove and replace with annotation on package-info.java
 public final class ImageUtil {
     private static final String TAG = "ImageUtil";
 
@@ -58,14 +62,41 @@ public final class ImageUtil {
     }
 
     /**
+     * Creates {@link Bitmap} from {@link ImageProxy}.
+     *
+     * <p> Currently only {@link ImageFormat#YUV_420_888}, {@link ImageFormat#JPEG},
+     * {@link ImageFormat#JPEG_R} and {@link PixelFormat#RGBA_8888} are supported. If the format
+     * is invalid, an {@link IllegalArgumentException} will be thrown. If the conversion to bimap
+     * failed, an {@link UnsupportedOperationException} will be thrown.
+     *
+     * @param imageProxy The input {@link ImageProxy} instance.
+     * @return {@link Bitmap} instance.
+     */
+    public static @NonNull Bitmap createBitmapFromImageProxy(@NonNull ImageProxy imageProxy) {
+        switch (imageProxy.getFormat()) {
+            case ImageFormat.YUV_420_888:
+                return ImageProcessingUtil.convertYUVToBitmap(imageProxy);
+            case ImageFormat.JPEG:
+            case ImageFormat.JPEG_R:
+                return createBitmapFromJpegImage(imageProxy);
+            case PixelFormat.RGBA_8888:
+                return createBitmapFromRgbaImage(imageProxy);
+            default:
+                throw new IllegalArgumentException(
+                        "Incorrect image format of the input image proxy: "
+                                + imageProxy.getFormat() + ", only ImageFormat.YUV_420_888 and "
+                                + "PixelFormat.RGBA_8888 are supported");
+        }
+    }
+
+    /**
      * Creates a {@link Bitmap} from an {@link ImageProxy.PlaneProxy} array.
      *
      * <p>This method expects a single plane with a pixel stride of 4 and a row stride of (width *
      * 4).
      */
-    @NonNull
-    public static Bitmap createBitmapFromPlane(
-            @NonNull ImageProxy.PlaneProxy[] planes, int width, int height) {
+    public static @NonNull Bitmap createBitmapFromPlane(
+            ImageProxy.PlaneProxy @NonNull [] planes, int width, int height) {
         checkArgument(planes.length == 1, "Expect a single plane");
         checkArgument(planes[0].getPixelStride() == DEFAULT_RGBA_PIXEL_STRIDE,
                 "Expect pixelStride=" + DEFAULT_RGBA_PIXEL_STRIDE);
@@ -73,19 +104,31 @@ public final class ImageUtil {
                 planes[0].getRowStride() == DEFAULT_RGBA_PIXEL_STRIDE * width,
                 "Expect rowStride=width*" + DEFAULT_RGBA_PIXEL_STRIDE);
         Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        bitmap.copyPixelsFromBuffer(planes[0].getBuffer());
+        // Rewind the buffer just to be safe.
+        planes[0].getBuffer().rewind();
+        ImageProcessingUtil.copyByteBufferToBitmap(bitmap, planes[0].getBuffer(),
+                planes[0].getRowStride());
         return bitmap;
+    }
+
+    /**
+     * Rotates the bitmap by the given rotation degrees.
+     */
+    public static @NonNull Bitmap rotateBitmap(@NonNull Bitmap bitmap, int rotationDegrees) {
+        Matrix matrix = new Matrix();
+        matrix.postRotate(rotationDegrees);
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix,
+                true);
     }
 
     /**
      * Creates a direct {@link ByteBuffer} and copy the content of the {@link Bitmap}.
      */
-    @NonNull
-    public static ByteBuffer createDirectByteBuffer(@NonNull Bitmap bitmap) {
+    public static @NonNull ByteBuffer createDirectByteBuffer(@NonNull Bitmap bitmap) {
         checkArgument(bitmap.getConfig() == Bitmap.Config.ARGB_8888,
                 "Only accept Bitmap with ARGB_8888 format for now.");
         ByteBuffer byteBuffer = allocateDirect(bitmap.getAllocationByteCount());
-        bitmap.copyPixelsToBuffer(byteBuffer);
+        ImageProcessingUtil.copyBitmapToByteBuffer(bitmap, byteBuffer, bitmap.getRowBytes());
         byteBuffer.rewind();
         return byteBuffer;
     }
@@ -93,8 +136,7 @@ public final class ImageUtil {
     /**
      * Converts a {@link Size} to an float array of vertexes.
      */
-    @NonNull
-    public static float[] sizeToVertexes(@NonNull Size size) {
+    public static float @NonNull [] sizeToVertexes(@NonNull Size size) {
         return new float[]{0, 0, size.getWidth(), 0, size.getWidth(), size.getHeight(), 0,
                 size.getHeight()};
     }
@@ -109,8 +151,7 @@ public final class ImageUtil {
     /**
      * Rotates aspect ratio based on rotation degrees.
      */
-    @NonNull
-    public static Rational getRotatedAspectRatio(
+    public static @NonNull Rational getRotatedAspectRatio(
             @IntRange(from = 0, to = 359) int rotationDegrees,
             @NonNull Rational aspectRatio) {
         if (rotationDegrees == 90 || rotationDegrees == 270) {
@@ -121,11 +162,10 @@ public final class ImageUtil {
     }
 
     /**
-     * Converts JPEG {@link ImageProxy} to JPEG byte array.
+     * Converts JPEG or JPEG_R {@link ImageProxy} to JPEG byte array.
      */
-    @NonNull
-    public static byte[] jpegImageToJpegByteArray(@NonNull ImageProxy image) {
-        if (image.getFormat() != ImageFormat.JPEG) {
+    public static byte @NonNull [] jpegImageToJpegByteArray(@NonNull ImageProxy image) {
+        if (!isJpegFormats(image.getFormat())) {
             throw new IllegalArgumentException(
                     "Incorrect image format of the input image proxy: " + image.getFormat());
         }
@@ -143,11 +183,10 @@ public final class ImageUtil {
      * Converts JPEG {@link ImageProxy} to JPEG byte array. The input JPEG image will be cropped
      * by the specified crop rectangle and compressed by the specified quality value.
      */
-    @NonNull
-    public static byte[] jpegImageToJpegByteArray(@NonNull ImageProxy image,
+    public static byte @NonNull [] jpegImageToJpegByteArray(@NonNull ImageProxy image,
             @NonNull Rect cropRect, @IntRange(from = 1, to = 100) int jpegQuality)
             throws CodecFailedException {
-        if (image.getFormat() != ImageFormat.JPEG) {
+        if (!isJpegFormats(image.getFormat())) {
             throw new IllegalArgumentException(
                     "Incorrect image format of the input image proxy: " + image.getFormat());
         }
@@ -161,28 +200,40 @@ public final class ImageUtil {
     /**
      * Converts YUV_420_888 {@link ImageProxy} to JPEG byte array. The input YUV_420_888 image
      * will be cropped if a non-null crop rectangle is specified. The output JPEG byte array will
-     * be compressed by the specified quality value.
+     * be compressed by the specified quality value. The rotationDegrees is set to the EXIF of
+     * the JPEG if it is not 0.
      */
-    @NonNull
-    public static byte[] yuvImageToJpegByteArray(@NonNull ImageProxy image,
-            @Nullable Rect cropRect, @IntRange(from = 1, to = 100) int jpegQuality)
-            throws CodecFailedException {
+    public static byte @NonNull [] yuvImageToJpegByteArray(@NonNull ImageProxy image,
+            @Nullable Rect cropRect,
+            @IntRange(from = 1, to = 100)
+            int jpegQuality,
+            int rotationDegrees) throws CodecFailedException {
         if (image.getFormat() != ImageFormat.YUV_420_888) {
             throw new IllegalArgumentException(
                     "Incorrect image format of the input image proxy: " + image.getFormat());
         }
 
-        return ImageUtil.nv21ToJpeg(
-                ImageUtil.yuv_420_888toNv21(image),
-                image.getWidth(),
-                image.getHeight(),
-                cropRect,
-                jpegQuality);
+        byte[] yuvBytes = yuv_420_888toNv21(image);
+        YuvImage yuv = new YuvImage(yuvBytes, ImageFormat.NV21, image.getWidth(), image.getHeight(),
+                null);
+
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        OutputStream out = new ExifOutputStream(
+                byteArrayOutputStream, ExifData.create(image, rotationDegrees));
+        if (cropRect == null) {
+            cropRect = new Rect(0, 0, image.getWidth(), image.getHeight());
+        }
+        boolean success =
+                yuv.compressToJpeg(cropRect, jpegQuality, out);
+        if (!success) {
+            throw new CodecFailedException("YuvImage failed to encode jpeg.",
+                    CodecFailedException.FailureType.ENCODE_FAILED);
+        }
+        return byteArrayOutputStream.toByteArray();
     }
 
     /** {@link android.media.Image} to NV21 byte array. */
-    @NonNull
-    public static byte[] yuv_420_888toNv21(@NonNull ImageProxy image) {
+    public static byte @NonNull [] yuv_420_888toNv21(@NonNull ImageProxy image) {
         ImageProxy.PlaneProxy yPlane = image.getPlanes()[0];
         ImageProxy.PlaneProxy uPlane = image.getPlanes()[1];
         ImageProxy.PlaneProxy vPlane = image.getPlanes()[2];
@@ -235,10 +286,9 @@ public final class ImageUtil {
         return nv21;
     }
 
-    /** Crops JPEG byte array with given {@link android.graphics.Rect}. */
-    @NonNull
+    /** Crops JPEG or JPEG_R byte array with given {@link android.graphics.Rect}. */
     @SuppressWarnings("deprecation")
-    private static byte[] cropJpegByteArray(@NonNull byte[] data, @NonNull Rect cropRect,
+    private static byte @NonNull [] cropJpegByteArray(byte @NonNull [] data, @NonNull Rect cropRect,
             @IntRange(from = 1, to = 100) int jpegQuality) throws CodecFailedException {
         Bitmap bitmap;
         try {
@@ -275,6 +325,16 @@ public final class ImageUtil {
         return aspectRatio != null && aspectRatio.floatValue() > 0 && !aspectRatio.isNaN();
     }
 
+    /** True if the given image format is JPEG or JPEG/R. */
+    public static boolean isJpegFormats(int imageFormat) {
+        return imageFormat == ImageFormat.JPEG || imageFormat == ImageFormat.JPEG_R;
+    }
+
+    /** True if the given image format is RAW_SENSOR. */
+    public static boolean isRawFormats(int imageFormat) {
+        return imageFormat == ImageFormat.RAW_SENSOR;
+    }
+
     /** True if the given aspect ratio is meaningful and has effect on the given size. */
     public static boolean isAspectRatioValid(@NonNull Size sourceSize,
             @Nullable Rational aspectRatio) {
@@ -288,8 +348,7 @@ public final class ImageUtil {
      * Calculates crop rect with the specified aspect ratio on the given size. Assuming the rect is
      * at the center of the source.
      */
-    @Nullable
-    public static Rect computeCropRectFromAspectRatio(@NonNull Size sourceSize,
+    public static @Nullable Rect computeCropRectFromAspectRatio(@NonNull Size sourceSize,
             @NonNull Rational aspectRatio) {
         if (!isAspectRatioValid(aspectRatio)) {
             Logger.w(TAG, "Invalid view ratio.");
@@ -330,8 +389,7 @@ public final class ImageUtil {
      * additional transformations, but this method is also generic enough to handle all possible
      * HAL rotations.
      */
-    @NonNull
-    public static Rect computeCropRectFromDispatchInfo(@NonNull Rect surfaceCropRect,
+    public static @NonNull Rect computeCropRectFromDispatchInfo(@NonNull Rect surfaceCropRect,
             int surfaceToOutputDegrees, @NonNull Size dispatchResolution,
             int dispatchToOutputDegrees) {
         // There are 3 coordinate systems: surface, dispatch and output. Surface is where
@@ -362,21 +420,6 @@ public final class ImageUtil {
         return dispatchCropRect;
     }
 
-    private static byte[] nv21ToJpeg(@NonNull byte[] nv21, int width, int height,
-            @Nullable Rect cropRect, @IntRange(from = 1, to = 100) int jpegQuality)
-            throws CodecFailedException {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        YuvImage yuv = new YuvImage(nv21, ImageFormat.NV21, width, height, null);
-        boolean success =
-                yuv.compressToJpeg(cropRect == null ? new Rect(0, 0, width, height) : cropRect,
-                        jpegQuality, out);
-        if (!success) {
-            throw new CodecFailedException("YuvImage failed to encode jpeg.",
-                    CodecFailedException.FailureType.ENCODE_FAILED);
-        }
-        return out.toByteArray();
-    }
-
     private static boolean isCropAspectRatioHasEffect(@NonNull Size sourceSize,
             @NonNull Rational aspectRatio) {
         int sourceWidth = sourceSize.getWidth();
@@ -395,6 +438,27 @@ public final class ImageUtil {
         return new Rational(
                 /*numerator=*/ rational.getDenominator(),
                 /*denominator=*/ rational.getNumerator());
+    }
+
+    private static @NonNull Bitmap createBitmapFromRgbaImage(@NonNull ImageProxy imageProxy) {
+        Bitmap bitmap =
+                Bitmap.createBitmap(imageProxy.getWidth(),
+                imageProxy.getHeight(),
+                Bitmap.Config.ARGB_8888);
+        // Rewind the buffer just to be safe.
+        imageProxy.getPlanes()[0].getBuffer().rewind();
+        ImageProcessingUtil.copyByteBufferToBitmap(bitmap, imageProxy.getPlanes()[0].getBuffer(),
+                imageProxy.getPlanes()[0].getRowStride());
+        return bitmap;
+    }
+
+    private static @NonNull Bitmap createBitmapFromJpegImage(@NonNull ImageProxy imageProxy) {
+        byte[] bytes = jpegImageToJpegByteArray(imageProxy);
+        Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, null);
+        if (bitmap == null) {
+            throw new UnsupportedOperationException("Decode jpeg byte array failed");
+        }
+        return bitmap;
     }
 
     /**
@@ -421,7 +485,7 @@ public final class ImageUtil {
             UNKNOWN
         }
 
-        private FailureType mFailureType;
+        private final FailureType mFailureType;
 
         CodecFailedException(@NonNull String message) {
             super(message);
@@ -433,8 +497,7 @@ public final class ImageUtil {
             mFailureType = failureType;
         }
 
-        @NonNull
-        public FailureType getFailureType() {
+        public @NonNull FailureType getFailureType() {
             return mFailureType;
         }
     }

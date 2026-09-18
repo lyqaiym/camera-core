@@ -19,12 +19,13 @@ package androidx.camera.core;
 import android.view.Surface;
 
 import androidx.annotation.GuardedBy;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.annotation.RestrictTo;
+import androidx.annotation.VisibleForTesting;
 import androidx.camera.core.ForwardingImageProxy.OnImageCloseListener;
 import androidx.camera.core.impl.ImageReaderProxy;
+
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.util.concurrent.Executor;
 
@@ -32,10 +33,8 @@ import java.util.concurrent.Executor;
  * An {@link ImageReaderProxy} that wraps another ImageReaderProxy to safely wait until all
  * produced {@link ImageProxy} are closed before closing the ImageReaderProxy.
  *
- * @hide
  */
 @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
-@RequiresApi(21) // TODO(b/200306659): Remove and replace with annotation on package-info.java
 public class SafeCloseImageReaderProxy implements ImageReaderProxy {
     // Lock to synchronize acquired ImageProxys and close.
     private final Object mLock = new Object();
@@ -49,8 +48,7 @@ public class SafeCloseImageReaderProxy implements ImageReaderProxy {
     @GuardedBy("mLock")
     private final ImageReaderProxy mImageReaderProxy;
 
-    @Nullable
-    private final Surface mSurface;
+    private final @Nullable Surface mSurface;
     private OnImageCloseListener mForwardingImageCloseListener;
 
     // Called after images are closed to check if the ImageReaderProxy should be closed
@@ -73,17 +71,15 @@ public class SafeCloseImageReaderProxy implements ImageReaderProxy {
         mSurface = imageReaderProxy.getSurface();
     }
 
-    @Nullable
     @Override
-    public ImageProxy acquireLatestImage() {
+    public @Nullable ImageProxy acquireLatestImage() {
         synchronized (mLock) {
             return wrapImageProxy(mImageReaderProxy.acquireLatestImage());
         }
     }
 
-    @Nullable
     @Override
-    public ImageProxy acquireNextImage() {
+    public @Nullable ImageProxy acquireNextImage() {
         synchronized (mLock) {
             return wrapImageProxy(mImageReaderProxy.acquireNextImage());
         }
@@ -108,8 +104,7 @@ public class SafeCloseImageReaderProxy implements ImageReaderProxy {
     }
 
     @GuardedBy("mLock")
-    @Nullable
-    private ImageProxy wrapImageProxy(@Nullable ImageProxy imageProxy) {
+    private @Nullable ImageProxy wrapImageProxy(@Nullable ImageProxy imageProxy) {
         if (imageProxy != null) {
             mOutstandingImages++;
             SingleCloseImageProxy singleCloseImageProxy =
@@ -140,6 +135,16 @@ public class SafeCloseImageReaderProxy implements ImageReaderProxy {
     }
 
     /**
+     * Check if the {@link SafeCloseImageReaderProxy} is closed for testing.
+     */
+    @VisibleForTesting
+    public boolean isClosed() {
+        synchronized (mLock) {
+            return mIsClosed;
+        }
+    }
+
+    /**
      * Returns the number of empty slots in the queue.
      */
     public int getCapacity() {
@@ -150,6 +155,7 @@ public class SafeCloseImageReaderProxy implements ImageReaderProxy {
 
     /**
      * Sets a listener for close calls on this image.
+     *
      * @param listener to set
      */
     public void setOnImageCloseListener(@NonNull OnImageCloseListener listener) {
@@ -186,9 +192,8 @@ public class SafeCloseImageReaderProxy implements ImageReaderProxy {
         }
     }
 
-    @Nullable
     @Override
-    public Surface getSurface() {
+    public @Nullable Surface getSurface() {
         synchronized (mLock) {
             return mImageReaderProxy.getSurface();
         }
@@ -207,6 +212,16 @@ public class SafeCloseImageReaderProxy implements ImageReaderProxy {
     public void clearOnImageAvailableListener() {
         synchronized (mLock) {
             mImageReaderProxy.clearOnImageAvailableListener();
+        }
+    }
+
+    /**
+     * Returns the underlying {@link ImageReaderProxy} for testing.
+     */
+    @VisibleForTesting
+    public @NonNull ImageReaderProxy getImageReaderProxy() {
+        synchronized (mLock) {
+            return mImageReaderProxy;
         }
     }
 }

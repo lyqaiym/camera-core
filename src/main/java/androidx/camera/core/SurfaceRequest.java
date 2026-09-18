@@ -16,6 +16,8 @@
 
 package androidx.camera.core;
 
+import static androidx.camera.core.impl.SessionConfig.DEFAULT_SESSION_TYPE;
+
 import android.annotation.SuppressLint;
 import android.graphics.Matrix;
 import android.graphics.Rect;
@@ -30,14 +32,12 @@ import android.view.TextureView;
 
 import androidx.annotation.GuardedBy;
 import androidx.annotation.IntDef;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.annotation.RestrictTo;
 import androidx.camera.core.impl.CameraInternal;
 import androidx.camera.core.impl.DeferrableSurface;
 import androidx.camera.core.impl.ImageFormatConstants;
 import androidx.camera.core.impl.ImageOutputConfig;
+import androidx.camera.core.impl.StreamSpec;
 import androidx.camera.core.impl.utils.executor.CameraXExecutors;
 import androidx.camera.core.impl.utils.futures.FutureCallback;
 import androidx.camera.core.impl.utils.futures.Futures;
@@ -47,6 +47,9 @@ import androidx.core.util.Preconditions;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.util.concurrent.ListenableFuture;
+
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -61,19 +64,50 @@ import java.util.concurrent.atomic.AtomicReference;
  * <p>Contains requirements for surface characteristics along with methods for completing the
  * request and listening for request cancellation.
  *
- * @see Preview.SurfaceProvider#onSurfaceRequested(SurfaceRequest)
+ * <p>Acts as a bridge between the surface provider and the surface requester. The diagram below
+ * describes how it works:
+ * <ol>
+ * <li>The surface provider gives a reference to surface requester for providing {@link Surface}
+ * (e.g. {@link Preview#setSurfaceProvider(Preview.SurfaceProvider)}).
+ * <li>The surface requester uses the reference to send a {@code SurfaceRequest} to get a
+ * {@link Surface} (e.g. {@link Preview.SurfaceProvider#onSurfaceRequested(SurfaceRequest)}).
+ * <li>The surface provider can use {@link #provideSurface(Surface, Executor, Consumer)} to provide
+ * a {@link Surface} or inform the surface requester no {@link Surface} will be provided with
+ * {@link #willNotProvideSurface()}. If a {@link Surface} is provided, the connection between
+ * surface provider and surface requester is established.
+ * <li>If the connection is established, the surface requester can get the {@link Surface} through
+ * {@link #getDeferrableSurface()} and start to send frame data.
+ * <li>If for some reason the provided {@link Surface} is no longer valid (e.g. when the
+ * SurfaceView destroys its surface due to page being slid out in ViewPager2), the surface
+ * provider can use {@link #invalidate()} method to inform the surface requester and the
+ * established connection will be closed.
+ * <li>The surface requester will re-send a new {@code SurfaceRequest} to establish a new
+ * connection.
+ * </ol>
+ *
+ * <img src="/images/reference/androidx/camera/camera-core/surface_request_work_flow.svg"/>
  */
-@RequiresApi(21) // TODO(b/200306659): Remove and replace with annotation on package-info.java
 public final class SurfaceRequest {
+
+    /**
+     * A frame rate range with no specified lower or upper bound.
+     *
+     * @see SurfaceRequest#getExpectedFrameRate()
+     */
+    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
+    public static final Range<Integer> FRAME_RATE_RANGE_UNSPECIFIED =
+            StreamSpec.FRAME_RATE_RANGE_UNSPECIFIED;
+
     private final Object mLock = new Object();
 
     private final Size mResolution;
 
-    @Nullable
-    private final Range<Integer> mExpectedFrameRate;
-    private final boolean mRGBA8888Required;
+    private final @NonNull DynamicRange mDynamicRange;
 
+    private final Range<Integer> mExpectedFrameRate;
     private final CameraInternal mCamera;
+    private final boolean mIsPrimary;
+    private final int mSessionType;
 
     // For the camera to retrieve the surface from the user
     @SuppressWarnings("WeakerAccess") /*synthetic accessor */
@@ -84,6 +118,9 @@ public final class SurfaceRequest {
     // from the camera.
     private final ListenableFuture<Void> mSessionStatusFuture;
 
+    // For notification of surface recreated.
+    private final CallbackToFutureAdapter.@NonNull Completer<Void> mSurfaceRecreationCompleter;
+
     // For notification of surface request cancellation. Should only be used to register
     // cancellation listeners.
     private final CallbackToFutureAdapter.Completer<Void> mRequestCancellationCompleter;
@@ -91,44 +128,60 @@ public final class SurfaceRequest {
     private final DeferrableSurface mInternalDeferrableSurface;
 
     @GuardedBy("mLock")
-    @Nullable
-    private TransformationInfo mTransformationInfo;
+    private @Nullable TransformationInfo mTransformationInfo;
     @GuardedBy("mLock")
-    @Nullable
-    private TransformationInfoListener mTransformationInfoListener;
+    private @Nullable TransformationInfoListener mTransformationInfoListener;
     // Executor for calling TransformationUpdateListener.
     @GuardedBy("mLock")
-    @Nullable
-    private Executor mTransformationInfoExecutor;
+    private @Nullable Executor mTransformationInfoExecutor;
 
     /**
      * Creates a new surface request with the given resolution and {@link Camera}.
-     *
-     * @hide
      */
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
     public SurfaceRequest(
             @NonNull Size resolution,
             @NonNull CameraInternal camera,
-            boolean isRGBA8888Required) {
-        this(resolution, camera, isRGBA8888Required, /*expectedFrameRate=*/null);
+            @NonNull Runnable onInvalidated) {
+        this(resolution, camera, DynamicRange.SDR, FRAME_RATE_RANGE_UNSPECIFIED, onInvalidated);
     }
 
     /**
-     * Creates a new surface request with the given resolution, {@link Camera}, and an optional
+     * Creates a new surface request with the given resolution, {@link Camera}, dynamic range, and
      * expected frame rate.
-     * @hide
      */
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
     public SurfaceRequest(
             @NonNull Size resolution,
             @NonNull CameraInternal camera,
-            boolean isRGBA8888Required,
-            @Nullable Range<Integer> expectedFrameRate) {
+            @NonNull DynamicRange dynamicRange,
+            @NonNull Range<Integer> expectedFrameRate,
+            @NonNull Runnable onInvalidated) {
+        this(resolution, camera, true, dynamicRange, DEFAULT_SESSION_TYPE,
+                expectedFrameRate, onInvalidated);
+    }
+
+    /**
+     * Creates a new surface request with the given resolution, {@link Camera}, dynamic range, and
+     * expected frame rate and whether it's primary or secondary camera.
+     */
+    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
+    public SurfaceRequest(
+            @NonNull Size resolution,
+            @NonNull CameraInternal camera,
+            boolean isPrimary,
+            @NonNull DynamicRange dynamicRange,
+            int sessionType,
+            @NonNull Range<Integer> expectedFrameRate,
+            @NonNull Runnable onInvalidated) {
         super();
         mResolution = resolution;
         mCamera = camera;
-        mRGBA8888Required = isRGBA8888Required;
+        mIsPrimary = isPrimary;
+        Preconditions.checkArgument(dynamicRange.isFullySpecified(),
+                "SurfaceRequest's DynamicRange must always be fully specified.");
+        mDynamicRange = dynamicRange;
+        mSessionType = sessionType;
         mExpectedFrameRate = expectedFrameRate;
 
         // To ensure concurrency and ordering, operations are chained. Completion can only be
@@ -201,9 +254,8 @@ public final class SurfaceRequest {
         // long as the DeferrableSurface is referenced externally (via getDeferrableSurface()).
         mInternalDeferrableSurface = new DeferrableSurface(resolution,
                 ImageFormatConstants.INTERNAL_DEFINED_IMAGE_FORMAT_PRIVATE) {
-            @NonNull
             @Override
-            protected ListenableFuture<Surface> provideSurface() {
+            protected @NonNull ListenableFuture<Surface> provideSurface() {
                 return mSurfaceFuture;
             }
         };
@@ -244,18 +296,30 @@ public final class SurfaceRequest {
         //    finished with the surface, so cancelling the surface future below will be a no-op.
         terminationFuture.addListener(() -> mSurfaceFuture.cancel(true),
                 CameraXExecutors.directExecutor());
+
+        mSurfaceRecreationCompleter = initialSurfaceRecreationCompleter(
+                CameraXExecutors.directExecutor(), onInvalidated);
     }
 
     /**
      * Returns the {@link DeferrableSurface} instance used to track usage of the surface that
      * fulfills this request.
-     *
-     * @hide
      */
-    @NonNull
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
-    public DeferrableSurface getDeferrableSurface() {
+    public @NonNull DeferrableSurface getDeferrableSurface() {
         return mInternalDeferrableSurface;
+    }
+
+    /**
+     * Returns whether this surface request has been serviced.
+     *
+     * <p>A surface request is considered serviced if
+     * {@link #provideSurface(Surface, Executor, Consumer)} or {@link #willNotProvideSurface()}
+     * has been called.
+     */
+    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
+    public boolean isServiced() {
+        return mSurfaceFuture.isDone();
     }
 
     /**
@@ -270,9 +334,36 @@ public final class SurfaceRequest {
      * @return The guaranteed supported resolution.
      * @see SurfaceTexture#setDefaultBufferSize(int, int)
      */
-    @NonNull
-    public Size getResolution() {
+    public @NonNull Size getResolution() {
         return mResolution;
+    }
+
+    /**
+     * Returns the dynamic range expected to be used with the requested surface.
+     *
+     * <p>The dynamic range may have implications for which surface type is returned. Special
+     * care should be taken to ensure the provided surface can support the requested dynamic
+     * range. For example, if the returned dynamic range has {@link DynamicRange#getBitDepth()}
+     * equal to {@link DynamicRange#BIT_DEPTH_10_BIT}, then the surface provided to
+     * {@link #provideSurface(Surface, Executor, Consumer)} should use an
+     * {@link android.graphics.ImageFormat} that can support ten bits of dynamic range, such as
+     * {@link android.graphics.ImageFormat#PRIVATE} or
+     * {@link android.graphics.ImageFormat#YCBCR_P010}.
+     *
+     * <p>The dynamic range returned here will always be fully specified. That is, it will never
+     * have an {@link DynamicRange#getEncoding() encoding} of
+     * {@link DynamicRange#ENCODING_UNSPECIFIED} or {@link DynamicRange#ENCODING_HDR_UNSPECIFIED}
+     * and will never have {@link DynamicRange#getBitDepth() bit depth} of
+     * {@link DynamicRange#BIT_DEPTH_UNSPECIFIED}.
+     */
+    public @NonNull DynamicRange getDynamicRange() {
+        return mDynamicRange;
+    }
+
+    /** Returns the session type associated with the surface request. */
+    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
+    public int getSessionType() {
+        return mSessionType;
     }
 
     /**
@@ -288,40 +379,33 @@ public final class SurfaceRequest {
      * conditions. The frame rate may also be fixed, in which case {@link Range#getUpper()} will
      * be equivalent to {@link Range#getLower()}.
      *
-     * <p>This method may also return {@code null} if no information about the frame rate can be
-     * determined. In this case, no assumptions should be made about what the actual frame rate
-     * will be.
+     * <p>This method may also return {@link #FRAME_RATE_RANGE_UNSPECIFIED} if no information about
+     * the frame rate can be determined. In this case, no assumptions should be made about what
+     * the actual frame rate will be.
      *
-     * @return The expected frame rate range or {@code null} if no frame rate information is
-     * available.
-     * @hide
+     * @return The expected frame rate range or {@link #FRAME_RATE_RANGE_UNSPECIFIED} if no frame
+     * rate information is available.
      */
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
-    @Nullable
-    public Range<Integer> getExpectedFrameRate() {
+    public @NonNull Range<Integer> getExpectedFrameRate() {
         return mExpectedFrameRate;
     }
 
     /**
      * Returns the {@link Camera} which is requesting a {@link Surface}.
-     *
-     * @hide
      */
-    @NonNull
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
-    public CameraInternal getCamera() {
+    public @NonNull CameraInternal getCamera() {
         return mCamera;
     }
 
     /**
-     * Returns whether a surface of RGBA_8888 pixel format is required.
-     *
-     * @return true if a surface of RGBA_8888 pixel format is required.
-     * @hide
+     * Returns whether the {@link Camera} is primary or secondary in dual camera case.
+     * The value is always true for single camera case.
      */
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
-    public boolean isRGBA8888Required() {
-        return mRGBA8888Required;
+    public boolean isPrimary() {
+        return mIsPrimary;
     }
 
     /**
@@ -356,6 +440,15 @@ public final class SurfaceRequest {
      */
     public void provideSurface(@NonNull Surface surface, @NonNull Executor executor,
             @NonNull Consumer<Result> resultListener) {
+        if (!surface.isValid()) {
+            // Only check Surface validness. The resolution match check might cause unexpected
+            // compatibility issue.
+            executor.execute(
+                    () -> resultListener.accept(
+                            Result.of(Result.RESULT_INVALID_SURFACE, surface)));
+            return;
+        }
+
         if (mSurfaceCompleter.set(surface) || mSurfaceFuture.isCancelled()) {
             // Session will be pending completion (or surface request was cancelled). Return the
             // session future.
@@ -388,7 +481,6 @@ public final class SurfaceRequest {
                         () -> resultListener.accept(
                                 Result.of(Result.RESULT_WILL_NOT_PROVIDE_SURFACE, surface)));
             }
-
         }
     }
 
@@ -417,6 +509,69 @@ public final class SurfaceRequest {
         return mSurfaceCompleter.setException(
                 new DeferrableSurface.SurfaceUnavailableException("Surface request "
                         + "will not complete."));
+    }
+
+    /**
+     * Sets a {@link Runnable} that handles the situation where {@link Surface} is no longer valid
+     * and triggers the process to request a new {@link Surface}.
+     *
+     * @param executor Executor used to execute the {@code runnable}.
+     * @param runnable The code which will be run when {@link Surface} is no longer valid.
+     */
+    private CallbackToFutureAdapter.Completer<Void> initialSurfaceRecreationCompleter(
+            @NonNull Executor executor, @NonNull Runnable runnable) {
+        AtomicReference<CallbackToFutureAdapter.Completer<Void>> completerRef =
+                new AtomicReference<>(null);
+        final ListenableFuture<Void> future = CallbackToFutureAdapter.getFuture(completer -> {
+            completerRef.set(completer);
+            return "SurfaceRequest-surface-recreation(" + SurfaceRequest.this.hashCode() + ")";
+        });
+
+        Futures.addCallback(future, new FutureCallback<Void>() {
+            @Override
+            public void onSuccess(@Nullable Void result) {
+                runnable.run();
+            }
+
+            @Override
+            public void onFailure(@NonNull Throwable t) {
+                // Do nothing
+            }
+        }, executor);
+
+        return Preconditions.checkNotNull(completerRef.get());
+    }
+
+    /**
+     * Invalidates the previously provided {@link Surface} to provide a new {@link Surface}.
+     *
+     * <p>Call this method to inform the surface requester that the previously provided
+     * {@link Surface} is no longer valid (e.g. when the SurfaceView destroys its surface due to
+     * page being slid out in ViewPager2) and should re-send a {@link SurfaceRequest} to obtain a
+     * new {@link Surface}.
+     *
+     * <p>Calling this method will cause the camera to be reconfigured. The app should call this
+     * method when the surface provider is ready to provide a new {@link Surface}. (e.g. a
+     * SurfaceView's surface is created when its window is visible.)
+     *
+     * <p>If the provided {@link Surface} was already invalidated, invoking this method will return
+     * {@code false}, and will have no effect. The surface requester will not be notified again, so
+     * there will not be another {@link SurfaceRequest}.
+     *
+     * <p>Calling this method without {@link #provideSurface(Surface, Executor, Consumer)}
+     * (regardless of whether @link #willNotProvideSurface()} has been called) will still trigger
+     * the surface requester to re-send a {@link SurfaceRequest}.
+     *
+     * <p>Since calling this method also means that the {@link SurfaceRequest} will not be
+     * fulfilled, if the {@link SurfaceRequest} has not responded, it will respond as if calling
+     * {@link #willNotProvideSurface()}.
+     *
+     * @return true if the provided {@link Surface} is invalidated or false if it was already
+     * invalidated.
+     */
+    public boolean invalidate() {
+        willNotProvideSurface();
+        return mSurfaceRecreationCompleter.set(null);
     }
 
     /**
@@ -460,8 +615,6 @@ public final class SurfaceRequest {
 
     /**
      * Updates the {@link TransformationInfo} associated with this {@link SurfaceRequest}.
-     *
-     * @hide
      */
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
     public void updateTransformationInfo(@NonNull TransformationInfo transformationInfo) {
@@ -561,8 +714,6 @@ public final class SurfaceRequest {
 
         /**
          * Possible result codes.
-         *
-         * @hide
          */
         @IntDef({RESULT_SURFACE_USED_SUCCESSFULLY, RESULT_REQUEST_CANCELLED, RESULT_INVALID_SURFACE,
                 RESULT_SURFACE_ALREADY_PROVIDED, RESULT_WILL_NOT_PROVIDE_SURFACE})
@@ -642,8 +793,7 @@ public final class SurfaceRequest {
          *                {@link #RESULT_WILL_NOT_PROVIDE_SURFACE}.
          * @param surface The {@link Surface} used to complete the {@link SurfaceRequest}.
          */
-        @NonNull
-        static Result of(@ResultCode int code, @NonNull Surface surface) {
+        static @NonNull Result of(@ResultCode int code, @NonNull Surface surface) {
             return new AutoValue_SurfaceRequest_Result(code, surface);
         }
 
@@ -664,8 +814,7 @@ public final class SurfaceRequest {
          *
          * @return the surface.
          */
-        @NonNull
-        public abstract Surface getSurface();
+        public abstract @NonNull Surface getSurface();
 
         // Ensure Result can't be subclassed outside the package
         Result() {
@@ -727,8 +876,7 @@ public final class SurfaceRequest {
          *
          * @see ViewPort
          */
-        @NonNull
-        public abstract Rect getCropRect();
+        public abstract @NonNull Rect getCropRect();
 
         /**
          * Returns the rotation needed to transform the output from sensor to the target
@@ -774,7 +922,6 @@ public final class SurfaceRequest {
          * which means targetRotation is not specified for Preview, the user should always get
          * up-to-date display rotation and re-calculate the rotationDegrees to correct the display.
          *
-         * @hide
          * @see CameraCharacteristics#SENSOR_ORIENTATION
          */
         @ImageOutputConfig.OptionalRotationValue
@@ -782,19 +929,95 @@ public final class SurfaceRequest {
         public abstract int getTargetRotation();
 
         /**
+         * Whether the {@link Surface} contains the camera transform.
+         *
+         * <p>When the Surface is connected to the camera directly, camera writes the
+         * camera orientation value to the Surface. For example, the value can be retrieved via
+         * {@link SurfaceTexture#getTransformMatrix(float[])}. Android components such
+         * as {@link TextureView} and {@link SurfaceView} use the value to transform the output.
+         * When the Surface is not connect to the camera directly, for example, when it was
+         * copied with OpenGL, the Surface will not contain the camera orientation value.
+         *
+         * <p>The app may need to transform the UI differently based on this flag. If this value
+         * is true, the app only needs to apply the Surface transformation; otherwise, the app
+         * needs to apply the value of {@link #getRotationDegrees()}. For example, if the preview
+         * is displayed in a {@link TextureView}:
+         *
+         * <pre><code>
+         * int rotationDegrees;
+         * if (surfaceRequest.hasCameraTransform()) {
+         *   switch (textureView.getDisplay().getRotation()) {
+         *     case Surface.ROTATION_0:
+         *       rotationDegrees = 0;
+         *       break;
+         *     case Surface.ROTATION_90:
+         *       rotationDegrees = 90;
+         *       break;
+         *     case Surface.ROTATION_180:
+         *       rotationDegrees = 180;
+         *       break;
+         *     case Surface.ROTATION_270:
+         *       rotationDegrees = 270;
+         *       break;
+         *     }
+         * } else {
+         *   rotationDegrees = transformationInfo.getRotationDegrees();
+         * }
+         * Matrix textureViewTransform = new Matrix();
+         * textureViewTransform.postRotate(rotationDegrees);
+         * textureView.setTransform(textureViewTransform);
+         * </code></pre>
+         *
+         * @return true if the {@link Surface} contains the camera transformation.
+         */
+        public abstract boolean hasCameraTransform();
+
+        /**
+         * Returns the sensor to image buffer transform matrix.
+         *
+         * <p>The value is a mapping from sensor coordinates to buffer coordinates, which is,
+         * from the rect of {@link CameraCharacteristics#SENSOR_INFO_ACTIVE_ARRAY_SIZE} to the
+         * rect defined by {@code (0, 0, #getResolution#getWidth(), #getResolution#getHeight())}.
+         * The matrix can be used to map the coordinates from one {@link UseCase} to another. For
+         * example, detecting face with {@link ImageAnalysis}, and then highlighting the face in
+         * {@link Preview}.
+         *
+         * <p>Code sample
+         * <code><pre>
+         *  // Get the transformation from sensor to effect input.
+         *  Matrix sensorToEffect = surfaceRequest.getSensorToBufferTransform();
+         *  // Get the transformation from sensor to ImageAnalysis.
+         *  Matrix sensorToAnalysis = imageProxy.getSensorToBufferTransform();
+         *  // Concatenate the two matrices to get the transformation from ImageAnalysis to effect.
+         *  Matrix analysisToEffect = Matrix()
+         *  sensorToAnalysis.invert(analysisToEffect);
+         *  analysisToEffect.postConcat(sensorToEffect);
+         * </pre></code>
+         */
+        public abstract @NonNull Matrix getSensorToBufferTransform();
+
+        /**
+         * Returns whether the buffer should be mirrored.
+         *
+         * <p>This flag indicates whether the buffer needs to be mirrored across the vertical
+         * axis. For example, for front camera preview, the buffer should usually be mirrored. The
+         * mirroring should be applied after the {@link #getRotationDegrees()} is applied.
+         */
+        public abstract boolean isMirroring();
+
+        /**
          * Creates new {@link TransformationInfo}
          *
          * <p> Internally public to be used in view artifact tests.
-         *
-         * @hide
          */
         @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
-        @NonNull
-        public static TransformationInfo of(@NonNull Rect cropRect,
+        public static @NonNull TransformationInfo of(@NonNull Rect cropRect,
                 @ImageOutputConfig.RotationDegreesValue int rotationDegrees,
-                @ImageOutputConfig.OptionalRotationValue int targetRotation) {
+                @ImageOutputConfig.OptionalRotationValue int targetRotation,
+                boolean hasCameraTransform, @NonNull Matrix sensorToBufferTransform,
+                boolean mirroring) {
             return new AutoValue_SurfaceRequest_TransformationInfo(cropRect, rotationDegrees,
-                    targetRotation);
+                    targetRotation, hasCameraTransform, sensorToBufferTransform, mirroring);
         }
 
         // Hides public constructor.

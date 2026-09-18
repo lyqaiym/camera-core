@@ -1,7 +1,10 @@
 import java.util.concurrent.TimeUnit
 
-apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
+plugins {
+//    id("AndroidXPlugin")
+    id("com.android.library")
+    id("kotlin-android")
+}
 
 project.configurations.all {
     it.resolutionStrategy.cacheDynamicVersionsFor(5, TimeUnit.MINUTES)
@@ -64,22 +67,24 @@ android {
 }
 
 dependencies {
+    api(libs.jspecify)
+    api(libs.kotlinStdlib) // Added for annotation-experimental
+    implementation(libs.kotlinCoroutinesAndroid)
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3"
     implementation("androidx.core:core-backported-fixes:1.0.0")
-    implementation("org.jspecify:jspecify:1.0.0")
     implementation("androidx.tracing:tracing:1.2.0")
     implementation 'androidx.exifinterface:exifinterface:1.3.0'
     implementation 'androidx.core:core:1.3.1@aar'
     implementation 'androidx.concurrent:concurrent-futures:1.0.0'
-    implementation 'androidx.lifecycle:lifecycle-common:2.4.0'
-    implementation 'androidx.lifecycle:lifecycle-livedata:2.4.0'
-    implementation 'androidx.annotation:annotation-experimental:1.1.0'
+    implementation 'androidx.lifecycle:lifecycle-common:2.1.0'
+    implementation 'androidx.lifecycle:lifecycle-livedata:2.1.0'
+    implementation 'androidx.annotation:annotation-experimental:1.4.0'
     implementation 'com.google.auto.value:auto-value-annotations:1.6.3'
     annotationProcessor 'com.google.auto.value:auto-value:1.6.3'
     def camerax_version = '1.4.2'
     implementation("androidx.camera:camera-lifecycle:$camerax_version"){
         exclude group: 'androidx.camera'
     }
-    implementation 'androidx.annotation:annotation:1.2.0'
+    implementation 'androidx.annotation:annotation:1.8.1'
 }
 

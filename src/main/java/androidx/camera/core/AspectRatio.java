@@ -17,7 +17,6 @@
 package androidx.camera.core;
 
 import androidx.annotation.IntDef;
-import androidx.annotation.RequiresApi;
 import androidx.annotation.RestrictTo;
 
 import java.lang.annotation.Retention;
@@ -28,8 +27,9 @@ import java.lang.annotation.RetentionPolicy;
  *
  * <p>Aspect ratio is the ratio of width to height.
  */
-@RequiresApi(21) // TODO(b/200306659): Remove and replace with annotation on package-info.java
 public class AspectRatio {
+    /** The aspect ratio representing no preference for aspect ratio. */
+    public static final int RATIO_DEFAULT = -1;
     /** 4:3 standard aspect ratio. */
     public static final int RATIO_4_3 = 0;
     /** 16:9 standard aspect ratio. */
@@ -39,9 +39,8 @@ public class AspectRatio {
     }
 
     /**
-     * @hide
      */
-    @IntDef({RATIO_4_3, RATIO_16_9})
+    @IntDef({RATIO_DEFAULT, RATIO_4_3, RATIO_16_9})
     @Retention(RetentionPolicy.SOURCE)
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
     public @interface Ratio {

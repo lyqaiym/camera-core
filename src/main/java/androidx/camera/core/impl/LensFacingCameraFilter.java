@@ -16,15 +16,12 @@
 
 package androidx.camera.core.impl;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.camera.core.CameraFilter;
 import androidx.camera.core.CameraInfo;
 import androidx.camera.core.CameraSelector;
-import androidx.camera.core.log.CameraLog;
 import androidx.core.util.Preconditions;
 
-import org.json.JSONArray;
+import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,32 +29,26 @@ import java.util.List;
 /**
  * A filter that filters camera based on lens facing.
  */
-@RequiresApi(21) // TODO(b/200306659): Remove and replace with annotation on package-info.java
 public class LensFacingCameraFilter implements CameraFilter {
     @CameraSelector.LensFacing
-    private int mLensFacing;
+    private final int mLensFacing;
 
     public LensFacingCameraFilter(@CameraSelector.LensFacing int lensFacing) {
         mLensFacing = lensFacing;
     }
 
-    @NonNull
     @Override
-    public List<CameraInfo> filter(@NonNull List<CameraInfo> cameraInfos) {
+    public @NonNull List<CameraInfo> filter(@NonNull List<CameraInfo> cameraInfos) {
         List<CameraInfo> result = new ArrayList<>();
-        JSONArray lensArr = new JSONArray();
-        JSONArray lensArr2 = new JSONArray();
         for (CameraInfo cameraInfo : cameraInfos) {
             Preconditions.checkArgument(cameraInfo instanceof CameraInfoInternal,
                     "The camera info doesn't contain internal implementation.");
-            Integer lensFacing = ((CameraInfoInternal) cameraInfo).getLensFacing();
-            lensArr.put("" + lensFacing);
-            if (lensFacing != null && lensFacing == mLensFacing) {
+            int lensFacing = cameraInfo.getLensFacing();
+            if (lensFacing == mLensFacing) {
                 result.add(cameraInfo);
-                lensArr2.put("" + lensFacing);
             }
         }
-        CameraLog.cameraFilter(lensArr, lensArr2, mLensFacing);
+
         return result;
     }
 

@@ -16,6 +16,7 @@
 
 package androidx.camera.core.imagecapture
 
+import android.graphics.Bitmap
 import androidx.camera.core.ImageCapture.OutputFileResults
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
@@ -23,43 +24,63 @@ import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-/**
- * Fake [TakePictureCallback] for getting the results asynchronously.
- */
+/** Fake [TakePictureCallback] for getting the results asynchronously. */
 class FakeTakePictureCallback : TakePictureCallback {
 
-    private lateinit var inMemoryResultCont: Continuation<ImageProxy>
-    private lateinit var onDiskResultCont: Continuation<OutputFileResults>
+    private var inMemoryResult: ImageProxy? = null
+    private var inMemoryResultCont: Continuation<ImageProxy>? = null
+    private var onDiskResult: OutputFileResults? = null
+    private var onDiskResultCont: Continuation<OutputFileResults>? = null
 
-    override fun onImageCaptured() {
-        TODO("Not yet implemented")
-    }
+    override fun onPostviewBitmapAvailable(bitmap: Bitmap) {}
+
+    override fun onCaptureProcessProgressed(progress: Int) {}
+
+    override fun onCaptureStarted() {}
+
+    override fun onImageCaptured() {}
 
     override fun onFinalResult(outputFileResults: OutputFileResults) {
-        onDiskResultCont.resume(outputFileResults)
+        val cont = onDiskResultCont
+        if (cont != null) {
+            cont.resume(outputFileResults)
+            onDiskResultCont = null
+        } else {
+            onDiskResult = outputFileResults
+        }
     }
 
     override fun onFinalResult(imageProxy: ImageProxy) {
-        inMemoryResultCont.resume(imageProxy)
+        val cont = inMemoryResultCont
+        if (cont != null) {
+            cont.resume(imageProxy)
+            inMemoryResultCont = null
+        } else {
+            inMemoryResult = imageProxy
+        }
     }
 
-    override fun onCaptureFailure(imageCaptureException: ImageCaptureException) {
-        TODO("Not yet implemented")
-    }
+    override fun onCaptureFailure(imageCaptureException: ImageCaptureException) {}
 
-    override fun onProcessFailure(imageCaptureException: ImageCaptureException) {
-        TODO("Not yet implemented")
-    }
+    override fun onProcessFailure(imageCaptureException: ImageCaptureException) {}
 
     override fun isAborted(): Boolean {
         return false
     }
 
     internal suspend fun getInMemoryResult() = suspendCoroutine { cont ->
-        inMemoryResultCont = cont
+        if (inMemoryResult != null) {
+            cont.resume(inMemoryResult!!)
+        } else {
+            inMemoryResultCont = cont
+        }
     }
 
     internal suspend fun getOnDiskResult() = suspendCoroutine { cont ->
-        onDiskResultCont = cont
+        if (onDiskResult != null) {
+            cont.resume(onDiskResult!!)
+        } else {
+            onDiskResultCont = cont
+        }
     }
 }

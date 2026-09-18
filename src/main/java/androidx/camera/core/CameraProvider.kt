@@ -13,50 +13,82 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package androidx.camera.core
 
-package androidx.camera.core;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
-
-import java.util.List;
+import androidx.annotation.RestrictTo
+import androidx.annotation.RestrictTo.Scope
+import androidx.lifecycle.LifecycleOwner
 
 /**
- * A {@link CameraProvider} provides basic access to a set of cameras such as querying for camera
+ * A [CameraProvider] provides basic access to a set of cameras such as querying for camera
  * existence or information.
  *
- * <p>A device might have multiple cameras. According to the applications' design, they might
- * need to search for a suitable camera which supports their functions. A {@link CameraProvider}
- * allows the applications to check whether any camera exists to fulfill the requirements or to
- * get {@link CameraInfo} instances of all cameras to retrieve the camera information.
+ * A device might have multiple cameras. According to the applications' design, they might need to
+ * search for a suitable camera which supports their functions. A [CameraProvider] allows the
+ * applications to check whether any camera exists to fulfill the requirements or to get
+ * [CameraInfo] instances of all cameras to retrieve the camera information.
  */
-@RequiresApi(21) // TODO(b/200306659): Remove and replace with annotation on package-info.java
 public interface CameraProvider {
+    /**
+     * The [CameraInfo] instances of the available cameras.
+     *
+     * While iterating through all the available [CameraInfo], if one of them meets some predefined
+     * requirements, a [CameraSelector] that uniquely identifies its camera can be retrieved using
+     * [CameraInfo.getCameraSelector], which can then be used to bind [use cases][UseCase] to that
+     * camera.
+     */
+    public val availableCameraInfos: List<CameraInfo>
+
+    /**
+     * Returns list of [CameraInfo] instances of the available concurrent cameras.
+     *
+     * The available concurrent cameras include all combinations of cameras which could operate
+     * concurrently on the device. Each list maps to one combination of these camera's [CameraInfo].
+     *
+     * For example, to select a front camera and a back camera and bind to [LifecycleOwner] with
+     * preview [UseCase], this function could be used with `bindToLifecycle`.
+     *
+     * @sample androidx.camera.lifecycle.samples.bindConcurrentCameraSample
+     * @return List of combinations of [CameraInfo].
+     */
+    @get:RestrictTo(Scope.LIBRARY_GROUP)
+    public val availableConcurrentCameraInfos: List<List<CameraInfo>>
+
+    /**
+     * Returns whether there is a [ConcurrentCamera] bound.
+     *
+     * @return `true` if there is a [ConcurrentCamera] bound, otherwise `false`.
+     */
+    @get:RestrictTo(Scope.LIBRARY_GROUP) public val isConcurrentCameraModeOn: Boolean
 
     /**
      * Checks whether this provider supports at least one camera that meets the requirements from a
-     * {@link CameraSelector}.
+     * [CameraSelector].
      *
-     * <p>If this method returns {@code true}, then the camera selector can be used to bind
-     * use cases and retrieve a {@link Camera} instance.
+     * If this method returns `true`, then the camera selector can be used to bind use cases and
+     * retrieve a [Camera] instance.
      *
-     * @param cameraSelector the {@link CameraSelector} that filters available cameras.
-     * @return true if the device has at least one available camera, otherwise false.
+     * @param cameraSelector the [CameraSelector] that filters available cameras.
+     * @return `true` if the device has at least one available camera, otherwise `false`.
      * @throws CameraInfoUnavailableException if unable to access cameras, perhaps due to
-     *                                        insufficient permissions.
+     *   insufficient permissions.
      */
-    boolean hasCamera(@NonNull CameraSelector cameraSelector) throws CameraInfoUnavailableException;
+    @Throws(CameraInfoUnavailableException::class)
+    public fun hasCamera(cameraSelector: CameraSelector): Boolean
 
     /**
-     * Returns {@link CameraInfo} instances of the available cameras.
+     * Returns the [CameraInfo] instance of the camera resulted from the specified [CameraSelector].
      *
-     * <p>While iterating through all the available {@link CameraInfo}, if one of them meets some
-     * predefined requirements, a {@link CameraSelector} that uniquely identifies its camera
-     * can be retrieved using {@link CameraInfo#getCameraSelector()}, which can then be used to bind
-     * {@linkplain UseCase use cases} to that camera.
+     * The returned [CameraInfo] corresponds to the camera that will be bound when calling
+     * `bindToLifecycle` with the specified [CameraSelector].
      *
-     * @return A list of {@link CameraInfo} instances for the available cameras.
+     * @param cameraSelector the [CameraSelector] to use for selecting the camera to receive
+     *   information about.
+     * @return the corresponding [CameraInfo].
+     * @throws IllegalArgumentException if the given [CameraSelector] can't result in a valid camera
+     *   to provide the [CameraInfo].
      */
-    @NonNull
-    List<CameraInfo> getAvailableCameraInfos();
+    public fun getCameraInfo(cameraSelector: CameraSelector): CameraInfo {
+        throw UnsupportedOperationException("The camera provider is not implemented properly.")
+    }
 }

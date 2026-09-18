@@ -22,15 +22,15 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.LayoutDirection;
 import android.util.Rational;
-import android.util.Size;
 
 import androidx.annotation.IntRange;
-import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.camera.core.UseCase;
 import androidx.camera.core.ViewPort;
+import androidx.camera.core.impl.StreamSpec;
 import androidx.camera.core.internal.utils.ImageUtil;
 import androidx.core.util.Preconditions;
+
+import org.jspecify.annotations.NonNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -38,7 +38,6 @@ import java.util.Map;
 /**
  * Utility methods for calculating viewports.
  */
-@RequiresApi(21) // TODO(b/200306659): Remove and replace with annotation on package-info.java
 public class ViewPorts {
     private ViewPorts() {
 
@@ -57,18 +56,17 @@ public class ViewPorts {
      *                              rotation.
      * @param scaleType             The scale type to calculate
      * @param layoutDirection       The direction of layout.
-     * @param useCaseSizes          The resolutions of the UseCases
+     * @param useCaseStreamSpecs    The stream specifications of the UseCases
      * @return The set of Viewports that should be set for each UseCase
      */
-    @NonNull
-    public static Map<UseCase, Rect> calculateViewPortRects(
+    public static @NonNull Map<UseCase, Rect> calculateViewPortRects(
             @NonNull Rect fullSensorRect,
             boolean isFrontCamera,
             @NonNull Rational viewPortAspectRatio,
             @IntRange(from = 0, to = 359) int outputRotationDegrees,
             @ViewPort.ScaleType int scaleType,
             @ViewPort.LayoutDirection int layoutDirection,
-            @NonNull Map<UseCase, Size> useCaseSizes) {
+            @NonNull Map<UseCase, StreamSpec> useCaseStreamSpecs) {
         Preconditions.checkArgument(
                 fullSensorRect.width() > 0 && fullSensorRect.height() > 0,
                 "Cannot compute viewport crop rects zero sized sensor rect.");
@@ -82,11 +80,11 @@ public class ViewPorts {
         RectF fullSensorRectF = new RectF(fullSensorRect);
         Map<UseCase, Matrix> useCaseToSensorTransformations = new HashMap<>();
         RectF sensorIntersectionRect = new RectF(fullSensorRect);
-        for (Map.Entry<UseCase, Size> entry : useCaseSizes.entrySet()) {
+        for (Map.Entry<UseCase, StreamSpec> entry : useCaseStreamSpecs.entrySet()) {
             // Calculate the transformation from UseCase to sensor.
             Matrix useCaseToSensorTransformation = new Matrix();
-            RectF srcRect = new RectF(0, 0, entry.getValue().getWidth(),
-                    entry.getValue().getHeight());
+            RectF srcRect = new RectF(0, 0, entry.getValue().getResolution().getWidth(),
+                    entry.getValue().getResolution().getHeight());
             useCaseToSensorTransformation.setRectToRect(srcRect, fullSensorRectF,
                     Matrix.ScaleToFit.CENTER);
             useCaseToSensorTransformations.put(entry.getKey(), useCaseToSensorTransformation);
@@ -129,8 +127,7 @@ public class ViewPorts {
      * <p> For FIT, returns the largest possible rect shared by all use cases.
      */
     @SuppressLint("SwitchIntDef")
-    @NonNull
-    public static RectF getScaledRect(
+    public static @NonNull RectF getScaledRect(
             @NonNull RectF fittingRect,
             @NonNull Rational containerAspectRatio,
             @ViewPort.ScaleType int scaleType,

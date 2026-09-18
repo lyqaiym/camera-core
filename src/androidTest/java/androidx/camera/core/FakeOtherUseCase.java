@@ -16,16 +16,15 @@
 
 package androidx.camera.core;
 
-import android.util.Size;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.annotation.RestrictTo;
 import androidx.camera.core.impl.Config;
+import androidx.camera.core.impl.StreamSpec;
 import androidx.camera.core.impl.UseCaseConfig;
 import androidx.camera.core.impl.UseCaseConfigFactory;
-import androidx.camera.testing.fakes.FakeUseCase;
+import androidx.camera.testing.impl.fakes.FakeUseCase;
+
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A second fake {@link UseCase}.
@@ -33,7 +32,6 @@ import androidx.camera.testing.fakes.FakeUseCase;
  * <p>This is used to complement the {@link FakeUseCase} for testing instances where a use case of
  * different type is created.
  */
-@RequiresApi(21)
 public class FakeOtherUseCase extends UseCase {
     private volatile boolean mIsDetached = false;
 
@@ -48,20 +46,18 @@ public class FakeOtherUseCase extends UseCase {
     }
 
     @Override
-    public void onDetached() {
-        super.onDetached();
+    public void onUnbind() {
+        super.onUnbind();
         mIsDetached = true;
     }
 
     /**
      * {@inheritDoc}
      *
-     * @hide
      */
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
-    @Nullable
     @Override
-    public UseCaseConfig<?> getDefaultConfig(boolean applyDefaultConfig,
+    public @Nullable UseCaseConfig<?> getDefaultConfig(boolean applyDefaultConfig,
             @NonNull UseCaseConfigFactory factory) {
         return null;
     }
@@ -69,22 +65,21 @@ public class FakeOtherUseCase extends UseCase {
     /**
      * {@inheritDoc}
      *
-     * @hide
      */
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
-    @NonNull
     @Override
-    public UseCaseConfig.Builder<?, ?, ?> getUseCaseConfigBuilder(@NonNull Config config) {
+    public UseCaseConfig.@NonNull Builder<?, ?, ?> getUseCaseConfigBuilder(@NonNull Config config) {
         throw new RuntimeException("Not implemented");
     }
 
     @Override
-    @NonNull
-    protected Size onSuggestedResolutionUpdated(@NonNull Size suggestedResolution) {
-        return suggestedResolution;
+    protected @NonNull StreamSpec onSuggestedStreamSpecUpdated(
+            @NonNull StreamSpec primaryStreamSpec,
+            @Nullable StreamSpec secondaryStreamSpec) {
+        return primaryStreamSpec;
     }
 
-    /** Returns true if {@link #onDetached()} has been called previously. */
+    /** Returns true if {@link #onUnbind()} has been called previously. */
     public boolean isDetached() {
         return mIsDetached;
     }

@@ -18,19 +18,21 @@ package androidx.camera.core.imagecapture;
 
 import static java.util.Objects.requireNonNull;
 
+import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.Rect;
-import android.os.Build;
 
 import androidx.annotation.MainThread;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.camera.core.ImageCapture;
 import androidx.camera.core.ImageCaptureException;
 import androidx.camera.core.ImageProxy;
 import androidx.camera.core.impl.CaptureBundle;
 import androidx.camera.core.impl.CaptureStage;
+
+import com.google.common.util.concurrent.ListenableFuture;
+
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,62 +40,78 @@ import java.util.List;
 /**
  * A post-processing request and its callback.
  */
-@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 class ProcessingRequest {
-
-    @Nullable
-    private final ImageCapture.OutputFileOptions mOutputFileOptions;
-    @NonNull
-    private final Rect mCropRect;
+    private final int mRequestId;
+    @NonNull TakePictureRequest mTakePictureRequest;
+    private final ImageCapture.@Nullable OutputFileOptions mOutputFileOptions;
+    private final ImageCapture.@Nullable OutputFileOptions mSecondaryOutputFileOptions;
+    private final @NonNull Rect mCropRect;
     private final int mRotationDegrees;
     private final int mJpegQuality;
-    @NonNull
-    private final Matrix mSensorToBufferTransform;
-    @NonNull
-    private final TakePictureCallback mCallback;
-    @NonNull
-    private final String mTagBundleKey;
-    @NonNull
-    private final List<Integer> mStageIds;
+    private final @NonNull Matrix mSensorToBufferTransform;
+    private final @NonNull TakePictureCallback mCallback;
+    private final @NonNull String mTagBundleKey;
+    private final @NonNull List<Integer> mStageIds;
+
+    final @NonNull ListenableFuture<Void> mCaptureFuture;
+    static final int PROGRESS_NOT_RECEIVED = -1;
+    private int mLastCaptureProcessProgressed = PROGRESS_NOT_RECEIVED;
 
     ProcessingRequest(
             @NonNull CaptureBundle captureBundle,
-            @Nullable ImageCapture.OutputFileOptions outputFileOptions,
-            @NonNull Rect cropRect,
-            int rotationDegrees,
-            int jpegQuality,
-            @NonNull Matrix sensorToBufferTransform,
-            @NonNull TakePictureCallback callback) {
-        mOutputFileOptions = outputFileOptions;
-        mJpegQuality = jpegQuality;
-        mRotationDegrees = rotationDegrees;
-        mCropRect = cropRect;
-        mSensorToBufferTransform = sensorToBufferTransform;
+            @NonNull TakePictureRequest takePictureRequest,
+            @NonNull TakePictureCallback callback,
+            @NonNull ListenableFuture<Void> captureFuture) {
+        this(captureBundle, takePictureRequest, callback, captureFuture, 0);
+    }
+    ProcessingRequest(
+            @NonNull CaptureBundle captureBundle,
+            @NonNull TakePictureRequest takePictureRequest,
+            @NonNull TakePictureCallback callback,
+            @NonNull ListenableFuture<Void> captureFuture,
+            int requestId) {
+        mRequestId = requestId;
+        mTakePictureRequest = takePictureRequest;
+        mOutputFileOptions = takePictureRequest.getOutputFileOptions();
+        mSecondaryOutputFileOptions = takePictureRequest.getSecondaryOutputFileOptions();
+        mJpegQuality = takePictureRequest.getJpegQuality();
+        mRotationDegrees = takePictureRequest.getRotationDegrees();
+        mCropRect = takePictureRequest.getCropRect();
+        mSensorToBufferTransform = takePictureRequest.getSensorToBufferTransform();
         mCallback = callback;
         mTagBundleKey = String.valueOf(captureBundle.hashCode());
         mStageIds = new ArrayList<>();
         for (CaptureStage captureStage : requireNonNull(captureBundle.getCaptureStages())) {
             mStageIds.add(captureStage.getId());
         }
+        mCaptureFuture = captureFuture;
     }
 
-    @NonNull
-    String getTagBundleKey() {
+    @NonNull String getTagBundleKey() {
         return mTagBundleKey;
     }
 
-    @NonNull
-    List<Integer> getStageIds() {
+    @NonNull List<Integer> getStageIds() {
         return mStageIds;
     }
 
-    @Nullable
-    ImageCapture.OutputFileOptions getOutputFileOptions() {
+    public int getRequestId() {
+        return mRequestId;
+    }
+
+    @NonNull TakePictureRequest getTakePictureRequest() {
+        return mTakePictureRequest;
+    }
+
+    ImageCapture.@Nullable OutputFileOptions getOutputFileOptions() {
         return mOutputFileOptions;
     }
 
-    @NonNull
-    Rect getCropRect() {
+    ImageCapture.@Nullable OutputFileOptions getSecondaryOutputFileOptions() {
+        return mSecondaryOutputFileOptions;
+    }
+
+    @NonNull Rect getCropRect() {
         return mCropRect;
     }
 
@@ -105,13 +123,28 @@ class ProcessingRequest {
         return mJpegQuality;
     }
 
-    @NonNull
-    Matrix getSensorToBufferTransform() {
+    @NonNull Matrix getSensorToBufferTransform() {
         return mSensorToBufferTransform;
     }
 
     boolean isInMemoryCapture() {
-        return getOutputFileOptions() == null;
+        return getOutputFileOptions() == null && getSecondaryOutputFileOptions() == null;
+    }
+
+    /**
+     * @see TakePictureCallback#onCaptureStarted()
+     */
+    @MainThread
+    void onCaptureStarted() {
+        mCallback.onCaptureStarted();
+    }
+
+    @MainThread
+    void onCaptureProcessProgressed(int progress) {
+        if (mLastCaptureProcessProgressed != progress) {
+            mLastCaptureProcessProgressed = progress;
+            mCallback.onCaptureProcessProgressed(progress);
+        }
     }
 
     /**
@@ -119,6 +152,11 @@ class ProcessingRequest {
      */
     @MainThread
     void onImageCaptured() {
+        // If process progress has ever been sent, ensure progress 100 is sent before image sent.
+        if (mLastCaptureProcessProgressed != PROGRESS_NOT_RECEIVED) {
+            onCaptureProcessProgressed(100);
+        }
+
         mCallback.onImageCaptured();
     }
 
@@ -126,8 +164,12 @@ class ProcessingRequest {
      * @see TakePictureCallback#onFinalResult
      */
     @MainThread
-    void onFinalResult(@NonNull ImageCapture.OutputFileResults outputFileResults) {
+    void onFinalResult(ImageCapture.@NonNull OutputFileResults outputFileResults) {
         mCallback.onFinalResult(outputFileResults);
+    }
+
+    void onPostviewBitmapAvailable(@NonNull Bitmap bitmap) {
+        mCallback.onPostviewBitmapAvailable(bitmap);
     }
 
     /**
@@ -147,9 +189,21 @@ class ProcessingRequest {
     }
 
     /**
+     * @see TakePictureCallback#onCaptureFailure
+     */
+    @MainThread
+    void onCaptureFailure(@NonNull ImageCaptureException imageCaptureException) {
+        mCallback.onCaptureFailure(imageCaptureException);
+    }
+
+    /**
      * Returns true if the request has been aborted by the app/lifecycle.
      */
     boolean isAborted() {
         return mCallback.isAborted();
+    }
+
+    @NonNull ListenableFuture<Void> getCaptureFuture() {
+        return mCaptureFuture;
     }
 }

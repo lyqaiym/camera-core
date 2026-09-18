@@ -13,26 +13,35 @@
 # License for the specific language governing permissions and limitations under
 # the License.
 #
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.22.1)
 
 project(camera_core_jni)
-
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/libyuv)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libyuv/include)
 
 add_library(
         image_processing_util_jni
         SHARED
         image_processing_util_jni.cc)
 
+add_library(
+        surface_util_jni
+        SHARED
+        surface_util_jni.cc)
+
 find_library(log-lib log)
-find_library(android-lib android)
 find_library(jnigraphics-lib jnigraphics)
-#find_package(libyuv REQUIRED)
+find_library(android-lib android)
+find_package(libyuv REQUIRED)
 
-#add_library(libyuv::yuv SHARED IMPORTED)
-#set_target_properties(
-#        libyuv::yuv PROPERTIES
-#        IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../../../build/intermediates/merged_native_libs/debug/out/lib/${CMAKE_ANDROID_ARCH_ABI}/libyuv.so)
+target_link_libraries(image_processing_util_jni PRIVATE ${log-lib} ${android-lib} ${jnigraphics-lib} libyuv::yuv)
+target_link_options(
+        image_processing_util_jni
+        PRIVATE
+        "-Wl,-z,max-page-size=16384"
+)
 
-target_link_libraries(image_processing_util_jni PRIVATE ${log-lib} ${android-lib} ${jnigraphics-lib} yuv)
+target_link_libraries(surface_util_jni  ${android-lib})
+target_link_options(
+        surface_util_jni
+        PRIVATE
+        "-Wl,-z,max-page-size=16384"
+)

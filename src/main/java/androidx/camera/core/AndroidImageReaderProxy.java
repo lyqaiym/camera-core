@@ -18,16 +18,14 @@ package androidx.camera.core;
 
 import android.media.Image;
 import android.media.ImageReader;
-import android.os.Handler;
-import android.os.HandlerThread;
 import android.view.Surface;
 
 import androidx.annotation.GuardedBy;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.camera.core.impl.ImageReaderProxy;
 import androidx.camera.core.impl.utils.MainThreadAsyncHandler;
+
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.util.concurrent.Executor;
 
@@ -37,13 +35,10 @@ import java.util.concurrent.Executor;
  * <p>All methods map one-to-one between this {@link ImageReaderProxy} and the wrapped {@link
  * ImageReader}.
  */
-@RequiresApi(21) // TODO(b/200306659): Remove and replace with annotation on package-info.java
 class AndroidImageReaderProxy implements ImageReaderProxy {
     @GuardedBy("mLock")
     private final ImageReader mImageReader;
     private final Object mLock = new Object();
-    private static HandlerThread mCameraThread;
-    private Handler mCameraHandler;
 
     @GuardedBy("mLock")
     private boolean mIsImageAvailableListenerCleared = true;
@@ -56,16 +51,10 @@ class AndroidImageReaderProxy implements ImageReaderProxy {
      */
     AndroidImageReaderProxy(ImageReader imageReader) {
         mImageReader = imageReader;
-        if (mCameraThread == null) {
-            mCameraThread = new HandlerThread("CameraThread");
-            mCameraThread.start();
-        }
-        mCameraHandler = new Handler(mCameraThread.getLooper());
     }
 
     @Override
-    @Nullable
-    public ImageProxy acquireLatestImage() {
+    public @Nullable ImageProxy acquireLatestImage() {
         synchronized (mLock) {
             Image image;
             try {
@@ -89,8 +78,7 @@ class AndroidImageReaderProxy implements ImageReaderProxy {
     }
 
     @Override
-    @Nullable
-    public ImageProxy acquireNextImage() {
+    public @Nullable ImageProxy acquireNextImage() {
         synchronized (mLock) {
             Image image;
             try {
@@ -152,17 +140,12 @@ class AndroidImageReaderProxy implements ImageReaderProxy {
         }
     }
 
-    @Nullable
     @Override
-    public Surface getSurface() {
+    public @Nullable Surface getSurface() {
         synchronized (mLock) {
             return mImageReader.getSurface();
         }
     }
-
-    // 帧率控制相关变量
-    private long mTargetFrameIntervalMs = 1000 / 10; // 默认10fps = 100ms间隔
-    private long mLastFrameTime = 0;
 
     @Override
     public void setOnImageAvailableListener(
@@ -172,39 +155,19 @@ class AndroidImageReaderProxy implements ImageReaderProxy {
             mIsImageAvailableListenerCleared = false;
             // ImageReader does not accept an executor. As a workaround, the callback is run on main
             // handler then immediately posted to the executor.
-//            ImageReader.OnImageAvailableListener transformedListener = (imageReader) -> {
-//
-//            };
-            ImageReader.OnImageAvailableListener transformedListener = new ImageReader.OnImageAvailableListener() {
-                @Override
-                public void onImageAvailable(ImageReader reader) {
-                    if (CameraThread.USE_CAMERA_THREAD) {
-                        long currentTime = System.currentTimeMillis();
-
-                        // 帧率控制：如果距离上一帧时间太短，则跳过这一帧
-                        if (mLastFrameTime > 0 && (currentTime - mLastFrameTime) < mTargetFrameIntervalMs) {
-                            return;
-                        }
-                        mLastFrameTime = currentTime;
-                    }
-                    synchronized (mLock) {
-                        // There might be a timing issue that the listener is executed after
-                        // clearOnImageAvailableListener() has been called. Uses a flag to skip the
-                        // execution if the listener has actually been cleared.
-                        if (!mIsImageAvailableListenerCleared) {
-                            executor.execute(
-                                    () -> listener.onImageAvailable(AndroidImageReaderProxy.this));
-                        }
+            ImageReader.OnImageAvailableListener transformedListener = (imageReader) -> {
+                synchronized (mLock) {
+                    // There might be a timing issue that the listener is executed after
+                    // clearOnImageAvailableListener() has been called. Uses a flag to skip the
+                    // execution if the listener has actually been cleared.
+                    if (!mIsImageAvailableListenerCleared) {
+                        executor.execute(
+                                () -> listener.onImageAvailable(AndroidImageReaderProxy.this));
                     }
                 }
             };
-            if (CameraThread.USE_CAMERA_THREAD) {
-                mImageReader.setOnImageAvailableListener(transformedListener,
-                        mCameraHandler);
-            } else {
-                mImageReader.setOnImageAvailableListener(transformedListener,
-                        MainThreadAsyncHandler.getInstance());
-            }
+            mImageReader.setOnImageAvailableListener(transformedListener,
+                    MainThreadAsyncHandler.getInstance());
         }
     }
 

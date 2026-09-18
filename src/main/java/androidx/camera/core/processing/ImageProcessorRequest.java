@@ -16,34 +16,27 @@
 
 package androidx.camera.core.processing;
 
-import android.os.Build;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.camera.core.ImageProcessor;
 import androidx.camera.core.ImageProxy;
 
-import java.util.List;
+import org.jspecify.annotations.NonNull;
 
 /**
  * Internal implementation of {@link ImageProcessor.Request} for sending {@link ImageProxy} to
  * effect implementations.
  */
-@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class ImageProcessorRequest implements ImageProcessor.Request {
-    @NonNull
-    private final List<ImageProxy> mImageProxies;
+    private final @NonNull ImageProxy mImageProxy;
     private final int mOutputFormat;
 
-    public ImageProcessorRequest(@NonNull List<ImageProxy> imageProxies, int outputFormat) {
-        mImageProxies = imageProxies;
+    public ImageProcessorRequest(@NonNull ImageProxy imageProxy, int outputFormat) {
+        mImageProxy = imageProxy;
         mOutputFormat = outputFormat;
     }
 
-    @NonNull
     @Override
-    public List<ImageProxy> getInputImages() {
-        return mImageProxies;
+    public @NonNull ImageProxy getInputImage() {
+        return mImageProxy;
     }
 
     @Override
